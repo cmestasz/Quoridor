@@ -7,13 +7,17 @@ using UnityEngine;
 public class AStar
 {
     private Tile[,] tiles;
-    private int boardSize;
+    private Fence[,] fences;
+    private int tileBoardSize;
+    private int fenceBoardSize;
     private Vector2Int[] neighbors;
 
-    public AStar(Tile[,] tiles)
+    public AStar(Tile[,] tiles, Fence[,] fences)
     {
         this.tiles = tiles;
-        boardSize = Board.BOARD_SIZE;
+        this.fences = fences;
+        tileBoardSize = TileBoard.BOARD_SIZE;
+        fenceBoardSize = FenceBoard.BOARD_SIZE;
         neighbors = new Vector2Int[]
             {
                 new(-1, 0),
@@ -23,9 +27,27 @@ public class AStar
             };
     }
 
-    private bool IsValid(int row, int col)
+    private bool IsTileInBounds(int row, int col)
     {
-        return (row >= 0) && (row < boardSize) && (col >= 0) && (col < boardSize);
+        return (row >= 0) && (row < tileBoardSize) && (col >= 0) && (col < tileBoardSize);
+    }
+
+    private bool IsFenceInBounds(int row, int col)
+    {
+        return (row >= 0) && (row < fenceBoardSize) && (col >= 0) && (col < fenceBoardSize);
+    }
+
+    private bool IsValid(int row, int col, int destRow, int destCol)
+    {
+        bool vertical = col == destCol;
+        int i1 = vertical ? row - 1 : Math.Min(row, destRow);
+        int j1 = vertical ? Math.Min(col, destCol) : col - 1;
+        int i2 = vertical ? row : Math.Min(row, destRow);
+        int j2 = vertical ? Math.Min(col, destCol) : col;
+
+        Fence fence1 = IsFenceInBounds(i1, j1) ? fences[i1, j1] : null;
+        Fence fence2 = IsFenceInBounds(i2, j2) ? fences[i2, j2] : null;
+        return (fence1 != null && fence1.IsVertical() != vertical) || (fence2 != null && fence2.IsVertical() != vertical);
     }
 
     private bool IsUnblocked(int row, int col)
@@ -45,15 +67,15 @@ public class AStar
 
     public List<Vector2> FindPath(int srcRow, int srcCol, int destRow, int destCol)
     {
-        for (int x = 0; x < boardSize; x++)
+        for (int x = 0; x < tileBoardSize; x++)
         {
-            for (int y = 0; y < boardSize; y++)
+            for (int y = 0; y < tileBoardSize; y++)
             {
                 tiles[x, y].ResetState();
             }
         }
 
-        if (!IsValid(srcRow, srcCol) || !IsValid(destRow, destCol))
+        if (!IsTileInBounds(srcRow, srcCol) || !IsTileInBounds(destRow, destCol))
         {
             return null;
         }
@@ -68,7 +90,7 @@ public class AStar
             return null;
         }
 
-        bool[,] closedList = new bool[boardSize, boardSize];
+        bool[,] closedList = new bool[tileBoardSize, tileBoardSize];
 
         int i = srcRow, j = srcCol;
         tiles[i, j].f = 0.0f;
@@ -87,20 +109,20 @@ public class AStar
             j = p.Value.y;
             closedList[i, j] = true;
 
-
-
             foreach (Vector2Int neighbor in neighbors)
             {
                 int row = i + neighbor.x;
                 int col = j + neighbor.y;
 
-                if (IsValid(row, col) && IsUnblocked(row, col) && !closedList[row, col])
+                if (IsTileInBounds(row, col) && IsValid(i, j, row, col) && !closedList[row, col])
                 {
                     if (IsDestination(row, col, destRow, destCol))
                     {
                         tiles[row, col].prev = tiles[i, j];
                         return BuildPath(tiles, destRow, destCol);
                     }
+
+                    Debug.DrawLine(tiles[i, j].transform.position, tiles[row, col].transform.position, Color.green, 3.0f);
 
                     float gNew = tiles[i, j].g + 1.0f;
                     float hNew = GetHValue(row, col, destRow, destCol);

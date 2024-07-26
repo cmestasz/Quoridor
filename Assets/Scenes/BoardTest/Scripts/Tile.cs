@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public const int EMPTY = 0, PLAYER = 1, WALL = 2;
+    public const int EMPTY = 0, PLAYER = 1;
     [SerializeField] private Sprite[] sprites;
     public int type;
     public float f, g, h;
@@ -35,6 +35,7 @@ public class Tile : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = sprites[type];
     }
 
+    /*
     public void OnMouseDown()
     {
         if (type == EMPTY)
@@ -50,4 +51,5 @@ public class Tile : MonoBehaviour
             SetType(EMPTY);
         }
     }
+    */
 }
