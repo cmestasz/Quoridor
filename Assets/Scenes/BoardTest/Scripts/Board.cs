@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    private const int BOARD_SIZE = 9;
+    public const int BOARD_SIZE = 9;
     private const int BOARD_SCALE = 1;
     [SerializeField] private GameObject tilePrefab;
     private Tile[,] tiles;
@@ -31,6 +32,10 @@ public class Board : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            AStar aStar = new AStar(tiles);
+            List<Vector2> path = aStar.FindPath(0, 0, BOARD_SIZE - 1, BOARD_SIZE - 1);
+        }
     }
 }
