@@ -23,7 +23,7 @@ public class FenceBoard : MonoBehaviour
             {
                 float x = i * BOARD_SCALE + offset;
                 float y = j * BOARD_SCALE + offset;
-                GameObject fence = Instantiate(fencePrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                GameObject fence = Instantiate(fencePrefab, new Vector3(x, y, transform.position.z), Quaternion.identity, transform);
                 fences[i, j] = fence.GetComponent<Fence>();
             }
         }

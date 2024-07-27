@@ -21,11 +21,6 @@ public class Fence : MonoBehaviour
 
     }
 
-    public bool IsVertical()
-    {
-        return active && vertical;
-    }
-
     public void Build(bool vertical)
     {
 

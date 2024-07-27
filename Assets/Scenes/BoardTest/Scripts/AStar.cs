@@ -39,15 +39,21 @@ public class AStar
 
     private bool IsValid(int row, int col, int destRow, int destCol)
     {
-        bool vertical = col == destCol;
-        int i1 = vertical ? row - 1 : Math.Min(row, destRow);
-        int j1 = vertical ? Math.Min(col, destCol) : col - 1;
-        int i2 = vertical ? row : Math.Min(row, destRow);
-        int j2 = vertical ? Math.Min(col, destCol) : col;
+        bool vertical = row == destRow;
+        int minRow = Math.Min(row, destRow);
+        int minCol = Math.Min(col, destCol);
+        int i1 = vertical ? row - 1 : minRow;
+        int j1 = vertical ? minCol : col - 1;
+        int i2 = vertical ? row : minRow;
+        int j2 = vertical ? minCol : col;
 
         Fence fence1 = IsFenceInBounds(i1, j1) ? fences[i1, j1] : null;
         Fence fence2 = IsFenceInBounds(i2, j2) ? fences[i2, j2] : null;
-        return (fence1 != null && fence1.IsVertical() != vertical) || (fence2 != null && fence2.IsVertical() != vertical);
+        return
+
+            (fence1 == null || !fence1.active || fence1.vertical == vertical) &&
+            (fence2 == null || !fence2.active || fence2.vertical == vertical)
+        ;
     }
 
     private bool IsUnblocked(int row, int col)
@@ -121,8 +127,6 @@ public class AStar
                         tiles[row, col].prev = tiles[i, j];
                         return BuildPath(tiles, destRow, destCol);
                     }
-
-                    Debug.DrawLine(tiles[i, j].transform.position, tiles[row, col].transform.position, Color.green, 3.0f);
 
                     float gNew = tiles[i, j].g + 1.0f;
                     float hNew = GetHValue(row, col, destRow, destCol);

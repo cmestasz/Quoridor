@@ -23,7 +23,7 @@ public class TileBoard : MonoBehaviour
             {
                 float x = i * BOARD_SCALE - offset;
                 float y = j * BOARD_SCALE - offset;
-                Tile tile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity, transform).GetComponent<Tile>();
+                Tile tile = Instantiate(tilePrefab, new Vector3(x, y, transform.position.z), Quaternion.identity, transform).GetComponent<Tile>();
                 tiles[i, j] = tile;
             }
         }
@@ -32,6 +32,6 @@ public class TileBoard : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

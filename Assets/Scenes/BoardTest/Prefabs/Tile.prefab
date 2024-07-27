@@ -107,6 +107,7 @@ MonoBehaviour:
   g: 0
   h: 0
   prev: {fileID: 0}
+  label: {fileID: 0}
 --- !u!61 &4699652844839213827
 BoxCollider2D:
   m_ObjectHideFlags: 0
