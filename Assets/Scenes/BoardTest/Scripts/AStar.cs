@@ -9,15 +9,12 @@ public class AStar
     private Tile[,] tiles;
     private Fence[,] fences;
     private int tileBoardSize;
-    private int fenceBoardSize;
     private Vector2Int[] neighbors;
 
     public AStar(Tile[,] tiles, Fence[,] fences)
     {
         this.tiles = tiles;
         this.fences = fences;
-        tileBoardSize = TileBoard.SIZE;
-        fenceBoardSize = FenceBoard.SIZE;
         neighbors = new Vector2Int[]
             {
                 new(-1, 0),
@@ -29,41 +26,22 @@ public class AStar
 
     private bool IsTileInBounds(int row, int col)
     {
-        return (row >= 0) && (row < tileBoardSize) && (col >= 0) && (col < tileBoardSize);
-    }
-
-    private bool IsFenceInBounds(int row, int col)
-    {
-        return (row >= 0) && (row < fenceBoardSize) && (col >= 0) && (col < fenceBoardSize);
+        return GameManager.IsTileInBounds(row, col);
     }
 
     private bool IsValid(int row, int col, int destRow, int destCol)
     {
-        bool vertical = row == destRow;
-        int minRow = Math.Min(row, destRow);
-        int minCol = Math.Min(col, destCol);
-        int i1 = vertical ? row - 1 : minRow;
-        int j1 = vertical ? minCol : col - 1;
-        int i2 = vertical ? row : minRow;
-        int j2 = vertical ? minCol : col;
-
-        Fence fence1 = IsFenceInBounds(i1, j1) ? fences[i1, j1] : null;
-        Fence fence2 = IsFenceInBounds(i2, j2) ? fences[i2, j2] : null;
-        return
-
-            (fence1 == null || !fence1.active || fence1.vertical == vertical) &&
-            (fence2 == null || !fence2.active || fence2.vertical == vertical)
-        ;
+        return GameManager.IsPassable(row, col, destRow, destCol, fences);
     }
 
     private bool IsUnblocked(int row, int col)
     {
-        return tiles[row, col].type == Tile.EMPTY;
+        return GameManager.IsUnblocked(row, col, tiles);
     }
 
     private bool IsDestination(int row, int col, int destRow, int destCol)
     {
-        return row == destRow && col == destCol;
+        return GameManager.IsDestination(row, col, destRow, destCol);
     }
 
     private float GetHValue(int row, int col, int destRow, int destCol)

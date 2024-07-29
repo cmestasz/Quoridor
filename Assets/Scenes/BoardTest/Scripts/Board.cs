@@ -6,20 +6,19 @@ public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
 {
     [SerializeField] protected GameObject prefab;
     public T[,] tiles;
-    public abstract int boardSize { get; }
+    public abstract int BoardSize { get; }
     protected const float BOARD_SCALE = 1;
     protected float offset;
 
-    // Start is called before the first frame update
     public void InitBoard()
     {
-        tiles = new T[boardSize, boardSize];
+        tiles = new T[BoardSize, BoardSize];
         prefab.transform.localScale = new Vector3(BOARD_SCALE, BOARD_SCALE, 1);
 
-        offset = -(boardSize * BOARD_SCALE / 2.0f - BOARD_SCALE / 2.0f);
-        for (int i = 0; i < boardSize; i++)
+        offset = -(BoardSize * BOARD_SCALE / 2.0f - BOARD_SCALE / 2.0f);
+        for (int i = 0; i < BoardSize; i++)
         {
-            for (int j = 0; j < boardSize; j++)
+            for (int j = 0; j < BoardSize; j++)
             {
                 float x = i * BOARD_SCALE + offset;
                 float y = j * BOARD_SCALE + offset;
@@ -37,7 +36,7 @@ public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
 
     public T GetByRelativePos(Vector2Int pos)
     {
-        if (pos.x < 0 || pos.x >= boardSize || pos.y < 0 || pos.y >= boardSize)
+        if (pos.x < 0 || pos.x >= BoardSize || pos.y < 0 || pos.y >= BoardSize)
         {
             return default;
         }
@@ -55,7 +54,7 @@ public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
     {
         int ni = i + dir.x;
         int nj = j + dir.y;
-        if (ni < 0 || ni >= boardSize || nj < 0 || nj >= boardSize)
+        if (ni < 0 || ni >= BoardSize || nj < 0 || nj >= BoardSize)
         {
             return default;
         }

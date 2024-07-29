@@ -10,8 +10,6 @@ public class Fence : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        active = false;
-        vertical = false;
         GetComponent<SpriteRenderer>().color = Color.clear;
     }
 

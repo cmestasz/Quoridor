@@ -5,19 +5,11 @@ using UnityEngine;
 public class FenceBoard : Board<Fence>
 {
     public const int SIZE = 8;
-    public override int boardSize => SIZE;
+    public override int BoardSize => SIZE;
 
     // Start is called before the first frame update
-    void Start()
+    public void Init()
     {
         InitBoard();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-
 }
