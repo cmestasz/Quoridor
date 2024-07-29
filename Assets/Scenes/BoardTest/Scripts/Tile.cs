@@ -7,6 +7,7 @@ public class Tile : MonoBehaviour
 {
     public const int EMPTY = 0, PLAYER = 1;
     [SerializeField] private Sprite[] sprites;
+    [SerializeField] public TextMeshPro label;
     public int type;
     public float f, g, h;
     public Tile prev;

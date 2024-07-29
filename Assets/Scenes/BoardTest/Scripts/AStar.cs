@@ -16,8 +16,8 @@ public class AStar
     {
         this.tiles = tiles;
         this.fences = fences;
-        tileBoardSize = TileBoard.BOARD_SIZE;
-        fenceBoardSize = FenceBoard.BOARD_SIZE;
+        tileBoardSize = TileBoard.SIZE;
+        fenceBoardSize = FenceBoard.SIZE;
         neighbors = new Vector2Int[]
             {
                 new(-1, 0),

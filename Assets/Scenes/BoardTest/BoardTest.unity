@@ -166,7 +166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 519d16d85d0f6d14fae394adc32f7739, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fencePrefab: {fileID: 410823409968418106, guid: 728f4d3daa35f9c4a8337829ff4ff202, type: 3}
+  prefab: {fileID: 410823409968418106, guid: 728f4d3daa35f9c4a8337829ff4ff202, type: 3}
 --- !u!1 &487833076
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,7 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8199f65390de8a45a6f548d00bc5376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilePrefab: {fileID: 5202985232278019368, guid: fc55e79eaea07534385b372992eee03c, type: 3}
+  prefab: {fileID: 5202985232278019368, guid: fc55e79eaea07534385b372992eee03c, type: 3}
 --- !u!1 &1346289128
 GameObject:
   m_ObjectHideFlags: 0
