@@ -21,11 +21,15 @@ public class Fence : MonoBehaviour
 
     public void Build(bool vertical)
     {
-
         active = true;
         this.vertical = vertical;
         GetComponent<SpriteRenderer>().color = Color.white;
         transform.eulerAngles = new Vector3(0, 0, vertical ? 90 : 0);
+    }
 
+    public void Unbuild()
+    {
+        active = false;
+        GetComponent<SpriteRenderer>().color = Color.clear;
     }
 }

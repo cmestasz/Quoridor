@@ -6,30 +6,24 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private TileBoard tileBoard;
     [SerializeField] private FenceBoard fenceBoard;
-    private int currentPlayer;
-    private Vector2Int[] playerPositions;
-    private Vector2Int[] playerDestinations;
-    private bool building;
+    private AStar aStar;
+    private int curr;
+    private Vector2Int[] playerPositions = new Vector2Int[] { new(4, 1), new(4, 7) };
+    private Vector2Int[] playerDestinations = new Vector2Int[] { new(4, 8), new(4, 0) };
+    private bool[] playerBuilding;
     private bool vertical;
+    private Fence lastFence;
     public Vector2Int[] HORIZONTAL_NEIGHBORS = new Vector2Int[] { new(1, 0), new(-1, 0) };
     public Vector2Int[] VERTICAL_NEIGHBORS = new Vector2Int[] { new(0, 1), new(0, -1) };
 
     // Start is called before the first frame update
     void Start()
     {
-        playerPositions = new Vector2Int[]
-        {
-            new(4, 0),
-            new(4, 8)
-        };
-        playerDestinations = new Vector2Int[]
-        {
-            new(4, 8),
-            new(4, 0)
-        };
+        playerBuilding = new bool[playerPositions.Length];
 
         tileBoard.Init();
         fenceBoard.Init();
+        aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
         for (int i = 0; i < playerPositions.Length; i++)
         {
             tileBoard.tiles[playerPositions[i].x, playerPositions[i].y].SetType(Tile.PLAYER);
@@ -41,10 +35,10 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.B))
         {
-            building = !building;
-            Debug.Log("Building: " + building);
+            playerBuilding[curr] = !playerBuilding[curr];
+            Debug.Log("Building: " + playerBuilding[curr]);
         }
-        if (building && Input.GetKeyDown(KeyCode.V))
+        if (playerBuilding[curr] && Input.GetKeyDown(KeyCode.V))
         {
             vertical = !vertical;
             Debug.Log("Vertical: " + vertical);
@@ -58,7 +52,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2Int relativePos;
-            if (building)
+            if (playerBuilding[curr])
             {
                 relativePos = fenceBoard.RealToRelativePos(mousePos);
                 Build(relativePos);
@@ -77,8 +71,12 @@ public class GameManager : MonoBehaviour
         {
             Fence fence = fenceBoard.GetByRelativePos(pos);
             fence.Build(vertical);
-            currentPlayer = (currentPlayer + 1) % playerPositions.Length;
-            Debug.Log("Turn: " + (currentPlayer + 1));
+            lastFence = fence;
+            if (PostValidateBuild())
+            {
+                curr = (curr + 1) % playerPositions.Length;
+                Debug.Log("Turn: " + (curr + 1));
+            }
         }
     }
 
@@ -86,14 +84,14 @@ public class GameManager : MonoBehaviour
     {
         if (IsMoveValid(dest))
         {
-            tileBoard.Swap(playerPositions[currentPlayer], dest);
-            playerPositions[currentPlayer] = dest;
-            if (playerPositions[currentPlayer] == playerDestinations[currentPlayer])
+            tileBoard.Swap(playerPositions[curr], dest);
+            playerPositions[curr] = dest;
+            if (playerPositions[curr] == playerDestinations[curr])
             {
-                Debug.Log("Player " + (currentPlayer + 1) + " wins!");
+                Debug.Log("Player " + (curr + 1) + " wins!");
             }
-            currentPlayer = (currentPlayer + 1) % playerPositions.Length;
-            Debug.Log("Turn: " + (currentPlayer + 1));
+            curr = (curr + 1) % playerPositions.Length;
+            Debug.Log("Turn: " + (curr + 1));
         }
     }
 
@@ -110,6 +108,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Already built");
             return false;
         }
+
         for (int i = 0; i < 2; i++)
         {
             Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, vertical ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
@@ -122,9 +121,26 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    private bool PostValidateBuild()
+    {
+        if (aStar.FindPath(playerPositions[0].x, playerPositions[0].y, playerDestinations[0].x, playerDestinations[0].y) == null)
+        {
+            Debug.Log("Player 1 is blocked");
+            lastFence.Unbuild();
+            return false;
+        }
+        if (aStar.FindPath(playerPositions[1].x, playerPositions[1].y, playerDestinations[1].x, playerDestinations[1].y) == null)
+        {
+            Debug.Log("Player 2 is blocked");
+            lastFence.Unbuild();
+            return false;
+        }
+        return true;
+    }
+
     private bool IsMoveValid(Vector2Int dest)
     {
-        Vector2Int current = playerPositions[currentPlayer];
+        Vector2Int current = playerPositions[curr];
         if (!IsTileInBounds(dest.x, dest.y))
         {
             Debug.Log("Out of bounds");
@@ -140,7 +156,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Invalid move");
             return false;
         }
-        if (!IsPassable(current.x, current.y, dest.x, dest.y, fenceBoard.tiles))
+        if (!IsPassable(current.x, current.y, dest.x, dest.y, fenceBoard.tiles, tileBoard.tiles))
         {
             Debug.Log("Blocked");
             return false;
@@ -148,8 +164,28 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public static bool IsPassable(int row, int col, int destRow, int destCol, Fence[,] fences)
+    public static bool IsPassable(int row, int col, int destRow, int destCol, Fence[,] fences, Tile[,] tiles)
     {
+        if (GetDistance(row, col, destRow, destCol) == 2)
+        {
+            int dirx = 0;
+            int diry = 0;
+
+            if (row < destRow)
+                dirx = 1;
+            else if (row > destRow)
+                dirx = -1;
+
+            if (col < destCol)
+                diry = 1;
+            else if (col > destCol)
+                diry = -1;
+
+            return
+                (dirx != 0 && tiles[row + dirx, col].type == Tile.PLAYER && IsPassable(row + dirx, col, destRow, destCol, fences, tiles)) ||
+                (diry != 0 && tiles[row, col + diry].type == Tile.PLAYER && IsPassable(row, col + diry, destRow, destCol, fences, tiles));
+        }
+
         bool vertical = row == destRow;
         int minRow = Mathf.Min(row, destRow);
         int minCol = Mathf.Min(col, destCol);
@@ -168,7 +204,12 @@ public class GameManager : MonoBehaviour
 
     public static bool IsReachable(int row, int col, int destRow, int destCol)
     {
-        return Mathf.Abs(row - destRow) + Mathf.Abs(col - destCol) == 1;
+        return GetDistance(row, col, destRow, destCol) <= 2;
+    }
+
+    public static int GetDistance(int row, int col, int destRow, int destCol)
+    {
+        return Mathf.Abs(row - destRow) + Mathf.Abs(col - destCol);
     }
 
     public static bool IsTileInBounds(int row, int col)

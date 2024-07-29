@@ -19,7 +19,7 @@ public class PathFinder : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             AStar aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
-            List<Vector2> path = aStar.FindPath(0, 0, BOARD_SIZE - 1, BOARD_SIZE - 1);
+            List<Vector2Int> path = aStar.FindPath(0, 0, BOARD_SIZE - 1, BOARD_SIZE - 1);
         }
     }
 }
