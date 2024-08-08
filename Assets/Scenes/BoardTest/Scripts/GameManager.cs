@@ -97,6 +97,7 @@ public class GameManager : MonoBehaviour
             lastFence = fence;
             if (PostValidateBuild())
             {
+                playersStatus[curr].fences--;
                 PassTurn();
             }
         }
@@ -141,6 +142,11 @@ public class GameManager : MonoBehaviour
 
     private bool IsBuildValid(Vector2Int pos)
     {
+        if (playersStatus[curr].fences <= 0)
+        {
+            Debug.Log("No fences left");
+            return false;
+        }
         Fence fence = fenceBoard.GetByRelativePos(pos);
         if (fence == null)
         {
