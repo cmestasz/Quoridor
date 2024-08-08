@@ -5,10 +5,12 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public const int EMPTY = 0, PLAYER = 1;
+    public const int EMPTY = 0, PLAYER = 1, DESTINATION = 2;
     [SerializeField] private Sprite[] sprites;
     [SerializeField] public TextMeshPro label;
     public int type;
+    public int player = -1;
+    public Color color;
     public float f, g, h;
     public Tile prev;
 
@@ -36,21 +38,9 @@ public class Tile : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = sprites[type];
     }
 
-    /*
-    public void OnMouseDown()
+    public void SetColor(Color color)
     {
-        if (type == EMPTY)
-        {
-            SetType(PLAYER);
-        }
-        else if (type == PLAYER)
-        {
-            SetType(WALL);
-        }
-        else if (type == WALL)
-        {
-            SetType(EMPTY);
-        }
+        this.color = color;
+        GetComponent<SpriteRenderer>().color = color;
     }
-    */
 }

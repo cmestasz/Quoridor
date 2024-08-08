@@ -1,49 +1,72 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private TileBoard tileBoard;
-    [SerializeField] private FenceBoard fenceBoard;
+    public TileBoard tileBoard;
+    public FenceBoard fenceBoard;
+    [SerializeField] private TMP_Text debugText;
+    [SerializeField] private PreviewController previewController;
+    [SerializeField] private Color[] playerColors;
     private AStar aStar;
     private int curr;
     private Vector2Int[] playerPositions = new Vector2Int[] { new(4, 1), new(4, 7) };
     private Vector2Int[] playerDestinations = new Vector2Int[] { new(4, 8), new(4, 0) };
-    private bool[] playerBuilding;
-    private bool vertical;
+    private PlayerStatus[] playersStatus = new PlayerStatus[] { new(), new() };
     private Fence lastFence;
     public Vector2Int[] HORIZONTAL_NEIGHBORS = new Vector2Int[] { new(1, 0), new(-1, 0) };
     public Vector2Int[] VERTICAL_NEIGHBORS = new Vector2Int[] { new(0, 1), new(0, -1) };
+    private bool playing = true;
 
     // Start is called before the first frame update
     void Start()
     {
-        playerBuilding = new bool[playerPositions.Length];
-
         tileBoard.Init();
         fenceBoard.Init();
         aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
         for (int i = 0; i < playerPositions.Length; i++)
         {
-            tileBoard.tiles[playerPositions[i].x, playerPositions[i].y].SetType(Tile.PLAYER);
+            Tile tile = tileBoard.GetByRelativePos(playerPositions[i]);
+            tile.SetType(Tile.PLAYER);
+            tile.SetColor(playerColors[i]);
+            tile.player = i;
         }
+        for (int i = 0; i < playerDestinations.Length; i++)
+        {
+            Tile tile = tileBoard.GetByRelativePos(playerDestinations[i]);
+            tile.SetType(Tile.DESTINATION);
+            tile.SetColor(playerColors[i]);
+            tile.player = i;
+        }
+        previewController.UpdatePreview();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (playing)
+        {
+            HandleToggles();
+            HandleTurn();
+        }
+    }
+
+    private void HandleToggles()
+    {
         if (Input.GetKeyDown(KeyCode.B))
         {
-            playerBuilding[curr] = !playerBuilding[curr];
-            Debug.Log("Building: " + playerBuilding[curr]);
+            playersStatus[curr].building = !IsCurrentBuilding();
+            UpdateDebugText();
+            previewController.UpdatePreview();
         }
-        if (playerBuilding[curr] && Input.GetKeyDown(KeyCode.V))
+        if (IsCurrentBuilding() && Input.GetKeyDown(KeyCode.V))
         {
-            vertical = !vertical;
-            Debug.Log("Vertical: " + vertical);
+            playersStatus[curr].vertical = !IsCurrentVertical();
+            UpdateDebugText();
+            previewController.UpdatePreview();
         }
-        HandleTurn();
     }
 
     private void HandleTurn()
@@ -52,7 +75,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2Int relativePos;
-            if (playerBuilding[curr])
+            if (IsCurrentBuilding())
             {
                 relativePos = fenceBoard.RealToRelativePos(mousePos);
                 Build(relativePos);
@@ -70,12 +93,11 @@ public class GameManager : MonoBehaviour
         if (IsBuildValid(pos))
         {
             Fence fence = fenceBoard.GetByRelativePos(pos);
-            fence.Build(vertical);
+            fence.Build(IsCurrentVertical());
             lastFence = fence;
             if (PostValidateBuild())
             {
-                curr = (curr + 1) % playerPositions.Length;
-                Debug.Log("Turn: " + (curr + 1));
+                PassTurn();
             }
         }
     }
@@ -84,15 +106,37 @@ public class GameManager : MonoBehaviour
     {
         if (IsMoveValid(dest))
         {
+            if (dest == playerDestinations[curr])
+            {
+                tileBoard.GetByRelativePos(dest).SetType(Tile.PLAYER);
+                tileBoard.GetByRelativePos(playerPositions[curr]).SetType(Tile.EMPTY);
+                debugText.text = $"Player {curr + 1} wins!";
+                EndGame();
+                return;
+            }
+
             tileBoard.Swap(playerPositions[curr], dest);
             playerPositions[curr] = dest;
-            if (playerPositions[curr] == playerDestinations[curr])
-            {
-                Debug.Log("Player " + (curr + 1) + " wins!");
-            }
-            curr = (curr + 1) % playerPositions.Length;
-            Debug.Log("Turn: " + (curr + 1));
+            PassTurn();
         }
+    }
+
+    private void PassTurn()
+    {
+        curr = (curr + 1) % playerPositions.Length;
+        previewController.UpdatePreview();
+        UpdateDebugText();
+    }
+
+    private void UpdateDebugText()
+    {
+        debugText.text = $"Turn: {curr + 1}, Building: {IsCurrentBuilding()}, Vertical: {IsCurrentVertical()}";
+    }
+
+    private void EndGame()
+    {
+        previewController.EndGame();
+        playing = false;
     }
 
     private bool IsBuildValid(Vector2Int pos)
@@ -111,8 +155,8 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < 2; i++)
         {
-            Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, vertical ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
-            if (neighbor != null && neighbor.active && neighbor.vertical == vertical)
+            Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, IsCurrentVertical() ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
+            if (neighbor != null && neighbor.active && neighbor.vertical == IsCurrentVertical())
             {
                 Debug.Log("Invalid position");
                 return false;
@@ -123,17 +167,14 @@ public class GameManager : MonoBehaviour
 
     private bool PostValidateBuild()
     {
-        if (aStar.FindPath(playerPositions[0].x, playerPositions[0].y, playerDestinations[0].x, playerDestinations[0].y) == null)
+        for (int i = 0; i < playerPositions.Length; i++)
         {
-            Debug.Log("Player 1 is blocked");
-            lastFence.Unbuild();
-            return false;
-        }
-        if (aStar.FindPath(playerPositions[1].x, playerPositions[1].y, playerDestinations[1].x, playerDestinations[1].y) == null)
-        {
-            Debug.Log("Player 2 is blocked");
-            lastFence.Unbuild();
-            return false;
+            if (aStar.FindPath(playerPositions[i].x, playerPositions[i].y, playerDestinations[i].x, playerDestinations[i].y, i) == null)
+            {
+                Debug.Log($"Player {i + 1} is blocked");
+                lastFence.Unbuild();
+                return false;
+            }
         }
         return true;
     }
@@ -146,7 +187,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Out of bounds");
             return false;
         }
-        if (!IsUnblocked(dest.x, dest.y, tileBoard.tiles))
+        if (!IsUnblocked(dest.x, dest.y, tileBoard.tiles, curr))
         {
             Debug.Log("Occupied");
             return false;
@@ -162,6 +203,39 @@ public class GameManager : MonoBehaviour
             return false;
         }
         return true;
+    }
+
+    public bool IsCurrentBuilding()
+    {
+        return playersStatus[curr].building;
+    }
+
+    public bool IsCurrentVertical()
+    {
+        return playersStatus[curr].vertical;
+    }
+
+    public Vector2Int GetCurrentPosition()
+    {
+        return playerPositions[curr];
+    }
+
+    public List<Vector2Int> GetValidMoves()
+    {
+        Vector2Int current = playerPositions[curr];
+        List<Vector2Int> validMoves = new();
+        for (int i = -2; i <= 2; i++)
+        {
+            for (int j = -2; j <= 2; j++)
+            {
+                Vector2Int dest = new(current.x + i, current.y + j);
+                if (IsTileInBounds(dest.x, dest.y) && IsUnblocked(dest.x, dest.y, tileBoard.tiles, curr) && IsReachable(current.x, current.y, dest.x, dest.y) && IsPassable(current.x, current.y, dest.x, dest.y, fenceBoard.tiles, tileBoard.tiles))
+                {
+                    validMoves.Add(dest);
+                }
+            }
+        }
+        return validMoves;
     }
 
     public static bool IsPassable(int row, int col, int destRow, int destCol, Fence[,] fences, Tile[,] tiles)
@@ -217,9 +291,9 @@ public class GameManager : MonoBehaviour
         return (row >= 0) && (row < TileBoard.SIZE) && (col >= 0) && (col < TileBoard.SIZE);
     }
 
-    public static bool IsUnblocked(int row, int col, Tile[,] tiles)
+    public static bool IsUnblocked(int row, int col, Tile[,] tiles, int player)
     {
-        return tiles[row, col].type == Tile.EMPTY;
+        return tiles[row, col].type == Tile.EMPTY || tiles[row, col].player == player;
     }
 
     public static bool IsDestination(int row, int col, int destRow, int destCol)
@@ -231,5 +305,4 @@ public class GameManager : MonoBehaviour
     {
         return (row >= 0) && (row < FenceBoard.SIZE) && (col >= 0) && (col < FenceBoard.SIZE);
     }
-
 }

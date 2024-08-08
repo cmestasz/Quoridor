@@ -26,7 +26,10 @@ public class TileBoard : Board<Tile>
         Tile tile1 = tiles[pos1.x, pos1.y];
         Tile tile2 = tiles[pos2.x, pos2.y];
         int type = tile1.type;
+        Color color = tile1.color;
         tile1.SetType(tile2.type);
         tile2.SetType(type);
+        tile1.SetColor(tile2.color);
+        tile2.SetColor(color);
     }
 }

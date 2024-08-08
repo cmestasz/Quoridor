@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Quoridor.sln"
+    "dotnet.defaultSolution": "Quoridor.sln",
+    "git.ignoreLimitWarning": true
 }

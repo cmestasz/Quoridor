@@ -35,9 +35,9 @@ public class AStar
         return GameManager.IsPassable(row, col, destRow, destCol, fences, tiles);
     }
 
-    private bool IsUnblocked(int row, int col)
+    private bool IsUnblocked(int row, int col, int player)
     {
-        return GameManager.IsUnblocked(row, col, tiles);
+        return GameManager.IsUnblocked(row, col, tiles, player);
     }
 
     private bool IsDestination(int row, int col, int destRow, int destCol)
@@ -50,7 +50,7 @@ public class AStar
         return Math.Abs(row - destRow) + Math.Abs(col - destCol);
     }
 
-    public List<Vector2Int> FindPath(int srcRow, int srcCol, int destRow, int destCol)
+    public List<Vector2Int> FindPath(int srcRow, int srcCol, int destRow, int destCol, int player)
     {
         for (int x = 0; x < tileBoardSize; x++)
         {
@@ -89,7 +89,7 @@ public class AStar
                 int row = i + neighbor.x;
                 int col = j + neighbor.y;
 
-                if (IsTileInBounds(row, col) && !IsUnblocked(row, col) && !closedList[row, col])
+                if (IsTileInBounds(row, col) && !IsUnblocked(row, col, player) && !closedList[row, col])
                 {
                     closedList[row, col] = true;
                     foreach (Vector2Int specialNeighbor in neighbors)
@@ -143,7 +143,7 @@ public class AStar
         int i = 0;
         while (dest.prev != null)
         {
-            Color color = i % 2 == 0 ? Color.red : Color.blue; 
+            Color color = i % 2 == 0 ? Color.red : Color.blue;
             path.Add(new Vector2Int((int)dest.transform.position.x, (int)dest.transform.position.y));
             Debug.DrawLine(dest.transform.position, dest.prev.transform.position, color, 3.0f);
             dest = dest.prev;

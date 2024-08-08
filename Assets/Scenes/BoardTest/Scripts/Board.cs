@@ -50,6 +50,19 @@ public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
         return new Vector2Int(i, j);
     }
 
+    public Vector2 RelativeToRealPos(Vector2Int pos)
+    {
+        float x = pos.x * BOARD_SCALE + offset;
+        float y = pos.y * BOARD_SCALE + offset;
+        return new Vector2(x, y);
+    }
+
+    public Vector2 LockedRealPos(Vector3 pos)
+    {
+        Vector2Int relativePos = RealToRelativePos(pos);
+        return RelativeToRealPos(relativePos);
+    }
+
     public T GetNeighbor(int i, int j, Vector2Int dir)
     {
         int ni = i + dir.x;
