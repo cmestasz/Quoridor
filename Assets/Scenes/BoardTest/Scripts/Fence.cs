@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Fence : MonoBehaviour
 {
     public bool active;
     public bool vertical;
+    public TextMeshPro label;
 
     // Start is called before the first frame update
     void Start()

@@ -4,20 +4,15 @@ using UnityEngine;
 
 public class PlayerActuatorComponent : ActuatorComponent
 {
-    // moves, they look like a 5x5 diamond around the player
-    private PlayerAgent playerAgent;
+    [SerializeField] private PlayerAgent playerAgent;
     private int totalActions = 13 + FenceBoard.SIZE * FenceBoard.SIZE * 2;
 
-    public override ActionSpec ActionSpec => ActionSpec.MakeDiscrete(totalActions);
-
-    void Start()
-    {
-        playerAgent = GetComponent<PlayerAgent>();
-    }
+    public override ActionSpec ActionSpec => ActionSpec.MakeDiscrete(new int[] { totalActions });
 
     public override IActuator[] CreateActuators()
     {
-        return new IActuator[] { new PlayerActuator(totalActions, playerAgent) };
+        IActuator[] actuators = new IActuator[] { new PlayerActuator(totalActions, playerAgent) };
+        return actuators;
     }
 
     public class PlayerActuator : IActuator
@@ -27,7 +22,7 @@ public class PlayerActuatorComponent : ActuatorComponent
 
         public PlayerActuator(int totalActions, PlayerAgent playerAgent)
         {
-            actionSpec = ActionSpec.MakeDiscrete(totalActions);
+            actionSpec = ActionSpec.MakeDiscrete(new int[] { totalActions });
             this.playerAgent = playerAgent;
         }
 

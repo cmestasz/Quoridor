@@ -42,12 +42,7 @@ public class ContinuousGameManager : MonoBehaviour
         }
     }
 
-    public bool Build(Vector2Int pos, int player)
-    {
-        return Build(pos, player, IsPlayerVertical(player));
-    }
-
-    public bool Build(Vector2Int pos, int player, bool vertical)
+    public bool Build(Vector2Int pos, int player, bool vertical, bool validation)
     {
         if (IsBuildValid(pos, player))
         {
@@ -57,7 +52,10 @@ public class ContinuousGameManager : MonoBehaviour
 
             if (PostValidateBuild())
             {
-                playersStatus[player].fences--;
+                if (!validation)
+                {
+                    playersStatus[player].fences--;
+                }
                 return true;
             }
         }
@@ -82,16 +80,30 @@ public class ContinuousGameManager : MonoBehaviour
 
     private bool IsBuildValid(Vector2Int pos, int player)
     {
-        Fence fence = fenceBoard.GetByRelativePos(pos);
-        if (GetPlayerFences(player) <= 0 || fence == null || fence.active)
+        if (GetPlayerFences(player) <= 0)
         {
+            Debug.Log("No fences left");
+            return false;
+        }
+        Fence fence = fenceBoard.GetByRelativePos(pos);
+        if (fence == null)
+        {
+            Debug.Log("Fence out of bounds");
+            return false;
+        }
+        if (fence.active)
+        {
+            Debug.Log("Fence already built");
             return false;
         }
         for (int i = 0; i < 2; i++)
         {
             Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, IsPlayerVertical(player) ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
             if (neighbor != null && neighbor.active && neighbor.vertical == IsPlayerVertical(player))
+            {
+                Debug.Log("Fence blocking");
                 return false;
+            }
         }
         return true;
     }
@@ -99,11 +111,24 @@ public class ContinuousGameManager : MonoBehaviour
     private bool IsMoveValid(int player, Vector2Int dest)
     {
         Vector2Int playerPos = playerPositions[player];
-        if (!IsTileInBounds(dest.x, dest.y) ||
-        !IsUnblocked(dest.x, dest.y, player) ||
-        !IsReachable(playerPos.x, playerPos.y, dest.x, dest.y) ||
-        !IsPassable(playerPos.x, playerPos.y, dest.x, dest.y))
+        if (!IsTileInBounds(dest.x, dest.y))
         {
+            Debug.Log("Tile out of bounds");
+            return false;
+        }
+        if (!IsUnblocked(dest.x, dest.y, player))
+        {
+            Debug.Log("Tile blocked");
+            return false;
+        }
+        if (!IsReachable(playerPos.x, playerPos.y, dest.x, dest.y))
+        {
+            Debug.Log("Tile unreachable");
+            return false;
+        }
+        if (!IsPassable(playerPos.x, playerPos.y, dest.x, dest.y))
+        {
+            Debug.Log("Tile impassable");
             return false;
         }
         return true;
@@ -113,6 +138,7 @@ public class ContinuousGameManager : MonoBehaviour
     {
         if (!IsPostBuildValid())
         {
+            Debug.Log("Blocking players path");
             lastFence.Unbuild();
             return false;
         }
@@ -135,7 +161,6 @@ public class ContinuousGameManager : MonoBehaviour
     {
         playing = false;
         this.winner = winner;
-        agentManager.EndGame();
     }
 
     public Vector2Int GetPlayerPosition(int player)
@@ -173,13 +198,17 @@ public class ContinuousGameManager : MonoBehaviour
 
     public List<Tuple<Vector2Int, bool>> GetValidBuilds(int player)
     {
+        if (GetPlayerFences(player) <= 0)
+        {
+            return new();
+        }
         List<Tuple<Vector2Int, bool>> validBuilds = new();
         for (int i = 0; i < fenceBoard.BoardSize; i++)
         {
             for (int j = 0; j < fenceBoard.BoardSize; j++)
             {
                 Vector2Int pos = new(i, j);
-                if (Build(pos, player, true))
+                if (Build(pos, player, true, true))
                 {
                     if (IsPostBuildValid())
                     {
@@ -187,7 +216,7 @@ public class ContinuousGameManager : MonoBehaviour
                     }
                     lastFence.Unbuild();
                 }
-                if (Build(pos, player, false))
+                if (Build(pos, player, false, true))
                 {
                     if (IsPostBuildValid())
                     {

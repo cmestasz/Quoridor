@@ -1,4 +1,4 @@
 # Quoridor
 
 ### Versión de Unity
-2022.3.37f1
+2023.2.12f1

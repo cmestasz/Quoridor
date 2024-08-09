@@ -1,6 +1,6 @@
 public class PlayerStatus
 {
-  public bool building { get; set; }
-  public bool vertical { get; set; }
-  public int fences { get; set; } = 6;
+  public bool building;
+  public bool vertical;
+  public int fences = 6;
 }
