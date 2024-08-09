@@ -2,22 +2,22 @@
     "Quoridor": {
         "checkpoints": [
             {
-                "steps": 938,
-                "file_path": "results\\Quoridor\\Quoridor\\Quoridor-938.onnx",
-                "reward": 0.11764705882352941,
-                "creation_time": 1723180290.0177176,
+                "steps": 205596,
+                "file_path": "results\\Quoridor\\Quoridor\\Quoridor-205596.onnx",
+                "reward": null,
+                "creation_time": 1723184349.157785,
                 "auxillary_file_paths": [
-                    "results\\Quoridor\\Quoridor\\Quoridor-938.pt"
+                    "results\\Quoridor\\Quoridor\\Quoridor-205596.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 938,
+            "steps": 205596,
             "file_path": "results\\Quoridor\\Quoridor.onnx",
-            "reward": 0.11764705882352941,
-            "creation_time": 1723180290.0177176,
+            "reward": null,
+            "creation_time": 1723184349.157785,
             "auxillary_file_paths": [
-                "results\\Quoridor\\Quoridor\\Quoridor-938.pt"
+                "results\\Quoridor\\Quoridor\\Quoridor-205596.pt"
             ]
         }
     },

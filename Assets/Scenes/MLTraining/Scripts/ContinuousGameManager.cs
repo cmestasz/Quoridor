@@ -10,22 +10,31 @@ public class ContinuousGameManager : MonoBehaviour
     [SerializeField] private Color[] playerColors;
     [SerializeField] private AgentManager agentManager;
     private AStar aStar;
-    private Vector2Int[] playerPositions = new Vector2Int[] { new(4, 1), new(4, 7) };
-    private Vector2Int[] playerDestinations = new Vector2Int[] { new(4, 8), new(4, 0) };
-    private PlayerStatus[] playersStatus = new PlayerStatus[] { new(), new() };
+    private Vector2Int[] playerPositions;
+    private Vector2Int[] playerDestinations;
+    private PlayerStatus[] playersStatus;
     private Fence lastFence;
     public Vector2Int[] HORIZONTAL_NEIGHBORS = new Vector2Int[] { new(1, 0), new(-1, 0) };
     public Vector2Int[] VERTICAL_NEIGHBORS = new Vector2Int[] { new(0, 1), new(0, -1) };
     public bool playing = false;
     public int winner = -1;
 
+    void Awake()
+    {
+        tileBoard.Init();
+        fenceBoard.Init();
+        aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
+    }
+
     public void StartGame()
     {
         playing = true;
         winner = -1;
-        tileBoard.Init();
-        fenceBoard.Init();
-        aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
+        tileBoard.Clear();
+        fenceBoard.Clear();
+        playerPositions = new Vector2Int[] { new(4, 1), new(4, 7) };
+        playerDestinations = new Vector2Int[] { new(4, 8), new(4, 0) };
+        playersStatus = new PlayerStatus[] { new(), new() };
         for (int i = 0; i < playerPositions.Length; i++)
         {
             Tile tile = tileBoard.GetByRelativePos(playerPositions[i]);
@@ -82,18 +91,18 @@ public class ContinuousGameManager : MonoBehaviour
     {
         if (GetPlayerFences(player) <= 0)
         {
-            Debug.Log("No fences left");
+            //Debug.Log("No fences left");
             return false;
         }
         Fence fence = fenceBoard.GetByRelativePos(pos);
         if (fence == null)
         {
-            Debug.Log("Fence out of bounds");
+            //Debug.Log("Fence out of bounds");
             return false;
         }
         if (fence.active)
         {
-            Debug.Log("Fence already built");
+            //Debug.Log("Fence already built");
             return false;
         }
         for (int i = 0; i < 2; i++)
@@ -101,7 +110,7 @@ public class ContinuousGameManager : MonoBehaviour
             Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, IsPlayerVertical(player) ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
             if (neighbor != null && neighbor.active && neighbor.vertical == IsPlayerVertical(player))
             {
-                Debug.Log("Fence blocking");
+                //Debug.Log("Fence blocking");
                 return false;
             }
         }
@@ -113,22 +122,22 @@ public class ContinuousGameManager : MonoBehaviour
         Vector2Int playerPos = playerPositions[player];
         if (!IsTileInBounds(dest.x, dest.y))
         {
-            Debug.Log("Tile out of bounds");
+            //Debug.Log("Tile out of bounds");
             return false;
         }
         if (!IsUnblocked(dest.x, dest.y, player))
         {
-            Debug.Log("Tile blocked");
+            //Debug.Log("Tile blocked");
             return false;
         }
         if (!IsReachable(playerPos.x, playerPos.y, dest.x, dest.y))
         {
-            Debug.Log("Tile unreachable");
+            //Debug.Log("Tile unreachable");
             return false;
         }
         if (!IsPassable(playerPos.x, playerPos.y, dest.x, dest.y))
         {
-            Debug.Log("Tile impassable");
+            //Debug.Log("Tile impassable");
             return false;
         }
         return true;
@@ -138,7 +147,7 @@ public class ContinuousGameManager : MonoBehaviour
     {
         if (!IsPostBuildValid())
         {
-            Debug.Log("Blocking players path");
+            //Debug.Log("Blocking players path");
             lastFence.Unbuild();
             return false;
         }

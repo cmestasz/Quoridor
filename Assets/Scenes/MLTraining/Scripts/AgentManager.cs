@@ -10,6 +10,7 @@ public class AgentManager : MonoBehaviour
     [SerializeField] private ContinuousGameManager gameManager;
     [SerializeField] private int maxTurns;
     private int turn;
+    private int episode;
 
     // Start is called before the first frame update
     void Start()
@@ -40,7 +41,8 @@ public class AgentManager : MonoBehaviour
 
     public IEnumerator HandleEpisodes()
     {
-        Debug.Log("Starting game");
+        Debug.Log("Episode " + episode);
+        episode++;
         yield return new WaitForSeconds(1f);
         while (gameManager.playing && turn < maxTurns)
         {

@@ -26,9 +26,8 @@ public class PlayerAgent : Agent
     {
     }
 
-    // flattened fence board, playernumber, p1pos, p2pos, p1dest, p2dest, p1fences left, p2fences left
+    // flattened fence board, p1pos, p2pos, p1dest, p2dest, p1fences left, p2fences left
     // 8*8*3 + 9*9 + 9*9 + 9*9 + 9*9 + 1 + 1 = 518
-    // turns out they were 520, good job
     public override void CollectObservations(VectorSensor sensor)
     {
         Fence[,] fences = gameManager.fenceBoard.tiles;
@@ -42,13 +41,23 @@ public class PlayerAgent : Agent
                     sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
             }
         }
-        sensor.AddOneHotObservation(player, 2);
-        sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
-        sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
-        sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
-        sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
-        sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
-        sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
+        if (player == 0)
+        {
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
+            sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
+            sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
+        } else if (player == 1)
+        {
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
+            sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
+            sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
+        }
     }
 
     // THE ACTIONS ARE AS FOLLOWS:
@@ -57,25 +66,25 @@ public class PlayerAgent : Agent
     // TOTALFENCES * 2  -   TOTALFENCES * 2 + 13:   move to position
     public void Act(int action)
     {
-        Debug.Log($"Player {player} acting with action {action}");
+        //Debug.Log($"Player {player} acting with action {action}");
         bool valid;
         if (action < totalFences)
         {
             Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
             valid = gameManager.Build(pos, player, true, false);
-            Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
+            //Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
         }
         else if (action < totalFences * 2)
         {
             Vector2Int pos = IndexToVector2Int(action - totalFences, fenceBoardSize);
             valid = gameManager.Build(pos, player, false, false);
-            Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
+            //Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
         }
         else
         {
             Vector2Int pos = TrainingConstants.moves[action - totalFences * 2] + gameManager.GetPlayerPosition(player);
             valid = gameManager.Move(pos, player);
-            Debug.Log($"Player {player} Moving to {pos} {valid}");
+            //Debug.Log($"Player {player} Moving to {pos} {valid}");
         }
         if (!valid)
             Debug.LogError("Invalid action, something must've gone really wrong");
@@ -86,7 +95,7 @@ public class PlayerAgent : Agent
         if (player == gameManager.winner)
             AddReward(1);
         else if (gameManager.winner == -1)
-            AddReward(0);
+            AddReward(-0.2f);
         else
             AddReward(-1);
         EndEpisode();
@@ -119,12 +128,12 @@ public class PlayerAgent : Agent
                 if (!validVerticalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index, false);
-                    Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
+                    //Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
                 }
                 if (!validHorizontalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index + totalFences, false);
-                    Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
+                    //Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
                 }
             }
         }
@@ -136,7 +145,7 @@ public class PlayerAgent : Agent
             if (!validMovesSet.Contains(move))
             {
                 actionMask.SetActionEnabled(-1, index, false);
-                Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
+                //Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
             }
         }
     }

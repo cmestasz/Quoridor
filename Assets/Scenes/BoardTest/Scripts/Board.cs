@@ -20,8 +20,8 @@ public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
         {
             for (int j = 0; j < BoardSize; j++)
             {
-                float x = i * BOARD_SCALE + offset;
-                float y = j * BOARD_SCALE + offset;
+                float x = transform.position.x + i * BOARD_SCALE + offset;
+                float y = transform.position.y + j * BOARD_SCALE + offset;
                 T instance = Instantiate(prefab, new Vector3(x, y, transform.position.z), Quaternion.identity, transform).GetComponent<T>();
                 tiles[i, j] = instance;
             }
