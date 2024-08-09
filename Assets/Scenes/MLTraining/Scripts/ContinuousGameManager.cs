@@ -1,12 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ContinuousGameManager : MonoBehaviour
 {
-    [SerializeField] private TileBoard tileBoard;
-    [SerializeField] private FenceBoard fenceBoard;
+    public TileBoard tileBoard;
+    public FenceBoard fenceBoard;
     [SerializeField] private Color[] playerColors;
+    [SerializeField] private AgentManager agentManager;
     private AStar aStar;
     private Vector2Int[] playerPositions = new Vector2Int[] { new(4, 1), new(4, 7) };
     private Vector2Int[] playerDestinations = new Vector2Int[] { new(4, 8), new(4, 0) };
@@ -20,6 +22,7 @@ public class ContinuousGameManager : MonoBehaviour
     public void StartGame()
     {
         playing = true;
+        winner = -1;
         tileBoard.Init();
         fenceBoard.Init();
         aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
@@ -39,9 +42,14 @@ public class ContinuousGameManager : MonoBehaviour
         }
     }
 
-    public bool Build(Vector2Int pos, bool vertical, int player)
+    public bool Build(Vector2Int pos, int player)
     {
-        if (IsBuildValid(pos, vertical, player))
+        return Build(pos, player, IsPlayerVertical(player));
+    }
+
+    public bool Build(Vector2Int pos, int player, bool vertical)
+    {
+        if (IsBuildValid(pos, player))
         {
             Fence fence = fenceBoard.GetByRelativePos(pos);
             fence.Build(vertical);
@@ -56,14 +64,13 @@ public class ContinuousGameManager : MonoBehaviour
         return false;
     }
 
-    public bool Move(int player, Vector2Int dest)
+    public bool Move(Vector2Int dest, int player)
     {
         if (IsMoveValid(player, dest))
         {
             if (dest == playerDestinations[player])
             {
-                playing = false;
-                winner = player;
+                EndGame(player);
             }
 
             tileBoard.Swap(playerPositions[player], dest);
@@ -73,7 +80,7 @@ public class ContinuousGameManager : MonoBehaviour
         return false;
     }
 
-    private bool IsBuildValid(Vector2Int pos, bool vertical, int player)
+    private bool IsBuildValid(Vector2Int pos, int player)
     {
         Fence fence = fenceBoard.GetByRelativePos(pos);
         if (GetPlayerFences(player) <= 0 || fence == null || fence.active)
@@ -104,15 +111,46 @@ public class ContinuousGameManager : MonoBehaviour
 
     private bool PostValidateBuild()
     {
+        if (!IsPostBuildValid())
+        {
+            lastFence.Unbuild();
+            return false;
+        }
+        return true;
+    }
+
+    private bool IsPostBuildValid()
+    {
         for (int i = 0; i < playerPositions.Length; i++)
         {
             if (aStar.FindPath(playerPositions[i].x, playerPositions[i].y, playerDestinations[i].x, playerDestinations[i].y, i) == null)
             {
-                lastFence.Unbuild();
                 return false;
             }
         }
         return true;
+    }
+
+    public void EndGame(int winner)
+    {
+        playing = false;
+        this.winner = winner;
+        agentManager.EndGame();
+    }
+
+    public Vector2Int GetPlayerPosition(int player)
+    {
+        return playerPositions[player];
+    }
+
+    public Vector2Int GetPlayerDestination(int player)
+    {
+        return playerDestinations[player];
+    }
+
+    public PlayerStatus GetPlayerStatus(int player)
+    {
+        return playersStatus[player];
     }
 
     public List<Vector2Int> GetValidMoves(int player)
@@ -131,6 +169,35 @@ public class ContinuousGameManager : MonoBehaviour
             }
         }
         return validMoves;
+    }
+
+    public List<Tuple<Vector2Int, bool>> GetValidBuilds(int player)
+    {
+        List<Tuple<Vector2Int, bool>> validBuilds = new();
+        for (int i = 0; i < fenceBoard.BoardSize; i++)
+        {
+            for (int j = 0; j < fenceBoard.BoardSize; j++)
+            {
+                Vector2Int pos = new(i, j);
+                if (Build(pos, player, true))
+                {
+                    if (IsPostBuildValid())
+                    {
+                        validBuilds.Add(new(pos, true));
+                    }
+                    lastFence.Unbuild();
+                }
+                if (Build(pos, player, false))
+                {
+                    if (IsPostBuildValid())
+                    {
+                        validBuilds.Add(new(pos, false));
+                    }
+                    lastFence.Unbuild();
+                }
+            }
+        }
+        return validBuilds;
     }
 
     private bool IsPlayerVertical(int player)
