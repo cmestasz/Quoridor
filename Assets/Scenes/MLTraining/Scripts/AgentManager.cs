@@ -41,9 +41,9 @@ public class AgentManager : MonoBehaviour
 
     public IEnumerator HandleEpisodes()
     {
+        yield return new WaitForSeconds(1f);
         Debug.Log("Episode " + episode);
         episode++;
-        yield return new WaitForSeconds(1f);
         while (gameManager.playing && turn < maxTurns)
         {
             if (turn % 2 == 0)
@@ -55,10 +55,10 @@ public class AgentManager : MonoBehaviour
                 agent2.RequestDecision();
             }
             turn++;
-            yield return new WaitForSeconds(0.5f);
+            yield return null;
         }
         EndGame();
-        yield return new WaitForSeconds(1f);
+        // yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         StartGame();
     }
 }

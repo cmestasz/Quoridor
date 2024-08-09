@@ -49,7 +49,8 @@ public class PlayerAgent : Agent
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
             sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
             sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
-        } else if (player == 1)
+        }
+        else if (player == 1)
         {
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
@@ -93,11 +94,13 @@ public class PlayerAgent : Agent
     public void EndGame()
     {
         if (player == gameManager.winner)
-            AddReward(1);
+            AddReward(0.5f);
         else if (gameManager.winner == -1)
-            AddReward(-0.2f);
+            AddReward(-0.75f);
         else
-            AddReward(-1);
+            AddReward(-1f);
+        float distance = gameManager.GetFinalDistance(player);
+        AddReward(distance == 0 ? 0.5f : 0.5f / (distance + 1));
         EndEpisode();
     }
 
@@ -148,6 +151,7 @@ public class PlayerAgent : Agent
                 //Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
             }
         }
+        actionMask.SetActionEnabled(-1, totalFences * 2 + 6, true);
     }
 
 

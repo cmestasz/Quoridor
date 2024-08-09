@@ -149,7 +149,6 @@ public class AStar
             dest = dest.prev;
             i++;
         }
-        path.Reverse();
         return path;
     }
 }

@@ -77,6 +77,7 @@ public class ContinuousGameManager : MonoBehaviour
         {
             if (dest == playerDestinations[player])
             {
+                playerPositions[player] = dest;
                 EndGame(player);
             }
 
@@ -85,6 +86,12 @@ public class ContinuousGameManager : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public int GetFinalDistance(int player)
+    {
+        List<Vector2Int> path = aStar.FindPath(playerPositions[player].x, playerPositions[player].y, playerDestinations[player].x, playerDestinations[player].y, player);
+        return path != null ? path.Count : 0;
     }
 
     private bool IsBuildValid(Vector2Int pos, int player)
@@ -120,6 +127,11 @@ public class ContinuousGameManager : MonoBehaviour
     private bool IsMoveValid(int player, Vector2Int dest)
     {
         Vector2Int playerPos = playerPositions[player];
+        if (playerPos == dest)
+        {
+            //Debug.Log("Same tile");
+            return true;
+        }
         if (!IsTileInBounds(dest.x, dest.y))
         {
             //Debug.Log("Tile out of bounds");
@@ -196,7 +208,7 @@ public class ContinuousGameManager : MonoBehaviour
             for (int j = -2; j <= 2; j++)
             {
                 Vector2Int dest = new(current.x + i, current.y + j);
-                if (IsTileInBounds(dest.x, dest.y) && IsUnblocked(dest.x, dest.y, player) && IsReachable(current.x, current.y, dest.x, dest.y) && IsPassable(current.x, current.y, dest.x, dest.y))
+                if (IsMoveValid(player, dest))
                 {
                     validMoves.Add(dest);
                 }
