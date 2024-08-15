@@ -73,34 +73,34 @@ public class PlayerAgent : Agent
         {
             Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
             valid = gameManager.Build(pos, player, true, false);
-            //Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
+            Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
         }
         else if (action < totalFences * 2)
         {
             Vector2Int pos = IndexToVector2Int(action - totalFences, fenceBoardSize);
             valid = gameManager.Build(pos, player, false, false);
-            //Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
+            Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
         }
         else
         {
             Vector2Int pos = TrainingConstants.moves[action - totalFences * 2] + gameManager.GetPlayerPosition(player);
             valid = gameManager.Move(pos, player);
-            //Debug.Log($"Player {player} Moving to {pos} {valid}");
+            Debug.Log($"Player {player} Moving to {pos} {valid}");
         }
         if (!valid)
-            Debug.LogError("Invalid action, something must've gone really wrong");
+            Debug.LogError($"Player {player} made an invalid move: {action}");
     }
 
     public void EndGame()
     {
-        if (player == gameManager.winner)
-            AddReward(0.5f);
-        else if (gameManager.winner == -1)
-            AddReward(-0.75f);
+        string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
+        Debug.Log($"I am player {player}, {winner}");
+        if (gameManager.winner == -1)
+            AddReward(0);
+        else if (player == gameManager.winner)
+            AddReward(1f);
         else
             AddReward(-1f);
-        float distance = gameManager.GetFinalDistance(player);
-        AddReward(distance == 0 ? 0.5f : 0.5f / (distance + 1));
         EndEpisode();
     }
 
@@ -131,12 +131,12 @@ public class PlayerAgent : Agent
                 if (!validVerticalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index, false);
-                    //Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
+                    Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
                 }
                 if (!validHorizontalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index + totalFences, false);
-                    //Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
+                    Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
                 }
             }
         }
@@ -148,10 +148,11 @@ public class PlayerAgent : Agent
             if (!validMovesSet.Contains(move))
             {
                 actionMask.SetActionEnabled(-1, index, false);
-                //Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
+                Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
             }
         }
         actionMask.SetActionEnabled(-1, totalFences * 2 + 6, true);
+        actionMask.SetActionEnabled(0, 0, false);
     }
 
 

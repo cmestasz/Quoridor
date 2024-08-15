@@ -55,10 +55,11 @@ public class AgentManager : MonoBehaviour
                 agent2.RequestDecision();
             }
             turn++;
+            // yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
             yield return null;
         }
         EndGame();
-        // yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         StartGame();
     }
 }
