@@ -59,7 +59,7 @@ public class AgentManager : MonoBehaviour
             yield return null;
         }
         EndGame();
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+        // yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         StartGame();
     }
 }

@@ -30,19 +30,27 @@ public class PlayerAgent : Agent
     // 8*8*3 + 9*9 + 9*9 + 9*9 + 9*9 + 1 + 1 = 518
     public override void CollectObservations(VectorSensor sensor)
     {
-        Fence[,] fences = gameManager.fenceBoard.tiles;
-        for (int i = 0; i < fenceBoardSize; i++)
-        {
-            for (int j = 0; j < fenceBoardSize; j++)
-            {
-                if (fences[i, j].active)
-                    sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
-                else
-                    sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
-            }
-        }
+
         if (player == 0)
         {
+            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize - 1];
+            bool[,] horizontal = new bool[fenceBoardSize - 1, fenceBoardSize];
+            Fence[,] fences = gameManager.fenceBoard.tiles;
+            for (int i = 0; i < fenceBoardSize; i++)
+            {
+                for (int j = 0; j < fenceBoardSize; j++)
+                {
+                    if (fences[i, j].active)
+                    {
+                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
+                    }
+                    else
+                    {
+                        vertical[i, j] = false;
+                        horizontal[i, j] = false;
+                    }
+                }
+            }
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
             sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
@@ -52,10 +60,21 @@ public class PlayerAgent : Agent
         }
         else if (player == 1)
         {
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
+            Fence[,] fences = gameManager.fenceBoard.tiles;
+            for (int i = fenceBoardSize - 1; i >= 0; i--)
+            {
+                for (int j = fenceBoardSize - 1; j >= 0; j--)
+                {
+                    if (fences[i, j].active)
+                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
+                    else
+                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
+                }
+            }
+            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(1), tileBoardSize), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(0), tileBoardSize), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(1), tileBoardSize), tileBoardSize), totalTiles);
+            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(0), tileBoardSize), tileBoardSize), totalTiles);
             sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
             sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
         }
@@ -72,23 +91,36 @@ public class PlayerAgent : Agent
         if (action < totalFences)
         {
             Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
+            if (player == 1)
+                pos = ReverseVector(pos, fenceBoardSize);
             valid = gameManager.Build(pos, player, true, false);
-            Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
+            //Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
         }
         else if (action < totalFences * 2)
         {
             Vector2Int pos = IndexToVector2Int(action - totalFences, fenceBoardSize);
+            if (player == 1)
+                pos = ReverseVector(pos, fenceBoardSize);
             valid = gameManager.Build(pos, player, false, false);
-            Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
+            //Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
         }
         else
         {
-            Vector2Int pos = TrainingConstants.moves[action - totalFences * 2] + gameManager.GetPlayerPosition(player);
+            Vector2Int pos;
+            if (player == 1)
+            {
+                pos = InvertVector(TrainingConstants.moves[action - totalFences * 2]) + gameManager.GetPlayerPosition(player);
+            }
+            else
+            {
+                pos = TrainingConstants.moves[action - totalFences * 2] + gameManager.GetPlayerPosition(player);
+            }
             valid = gameManager.Move(pos, player);
-            Debug.Log($"Player {player} Moving to {pos} {valid}");
+            // Debug.Log($"Player {player} Moving to {pos} {valid}");
         }
         if (!valid)
             Debug.LogError($"Player {player} made an invalid move: {action}");
+        AddReward(-0.0015f);
     }
 
     public void EndGame()
@@ -96,11 +128,11 @@ public class PlayerAgent : Agent
         string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
         Debug.Log($"I am player {player}, {winner}");
         if (gameManager.winner == -1)
-            AddReward(0);
+            AddReward(-0.5f);
         else if (player == gameManager.winner)
             AddReward(1f);
         else
-            AddReward(-1f);
+            SetReward(-1f);
         EndEpisode();
     }
 
@@ -122,6 +154,12 @@ public class PlayerAgent : Agent
                 validHorizontalBuildsSet.Add(build.Item1);
         }
 
+        if (player == 1)
+        {
+            validVerticalBuildsSet = ReverseVectors(validVerticalBuildsSet, fenceBoardSize);
+            validHorizontalBuildsSet = ReverseVectors(validHorizontalBuildsSet, fenceBoardSize);
+        }
+
         for (int i = 0; i < fenceBoardSize; i++)
         {
             for (int j = 0; j < fenceBoardSize; j++)
@@ -131,28 +169,35 @@ public class PlayerAgent : Agent
                 if (!validVerticalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index, false);
-                    Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
+                    //Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
                 }
                 if (!validHorizontalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index + totalFences, false);
-                    Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
+                    //Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
                 }
             }
         }
 
         for (int i = 0; i < TrainingConstants.moves.Length; i++)
         {
-            Vector2Int move = TrainingConstants.moves[i] + gameManager.GetPlayerPosition(player);
+            Vector2Int move;
+            if (player == 1)
+            {
+                move = InvertVector(TrainingConstants.moves[i]) + gameManager.GetPlayerPosition(player);
+            }
+            else
+            {
+                move = TrainingConstants.moves[i] + gameManager.GetPlayerPosition(player);
+            }
             int index = totalFences * 2 + i;
             if (!validMovesSet.Contains(move))
             {
                 actionMask.SetActionEnabled(-1, index, false);
-                Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
+                //Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
             }
         }
         actionMask.SetActionEnabled(-1, totalFences * 2 + 6, true);
-        actionMask.SetActionEnabled(0, 0, false);
     }
 
 
@@ -164,5 +209,26 @@ public class PlayerAgent : Agent
     private Vector2Int IndexToVector2Int(int index, int height)
     {
         return new Vector2Int(index / height, index % height);
+    }
+
+    private HashSet<Vector2Int> ReverseVectors(HashSet<Vector2Int> vectors, int size)
+    {
+        HashSet<Vector2Int> reversed = new();
+        foreach (Vector2Int vector in vectors)
+        {
+            reversed.Add(ReverseVector(vector, size));
+        }
+        return reversed;
+    }
+
+    private Vector2Int ReverseVector(Vector2Int vector, int size)
+    {
+        return new Vector2Int(size - vector.x - 1, size - vector.y - 1);
+    }
+
+
+    private Vector2Int InvertVector(Vector2Int vector)
+    {
+        return new Vector2Int(-vector.x, -vector.y);
     }
 }

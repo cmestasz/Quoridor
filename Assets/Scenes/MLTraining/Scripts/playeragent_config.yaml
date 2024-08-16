@@ -29,6 +29,5 @@ behaviors:
         gamma: 0.995
     self_play:
       save_steps: 20000
-      team_change: 10
+      team_change: 100000
 
-        
