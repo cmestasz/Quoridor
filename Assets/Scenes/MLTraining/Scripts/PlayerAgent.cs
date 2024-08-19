@@ -26,64 +26,165 @@ public class PlayerAgent : Agent
     {
     }
 
-    // flattened fence board, p1pos, p2pos, p1dest, p2dest, p1fences left, p2fences left
-    // 8*8*3 + 9*9 + 9*9 + 9*9 + 9*9 + 1 + 1 = 518
     public override void CollectObservations(VectorSensor sensor)
     {
-
         if (player == 0)
         {
-            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize - 1];
-            bool[,] horizontal = new bool[fenceBoardSize - 1, fenceBoardSize];
+            List<float> obs = new();
             Fence[,] fences = gameManager.fenceBoard.tiles;
+            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
+            bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
             for (int i = 0; i < fenceBoardSize; i++)
             {
                 for (int j = 0; j < fenceBoardSize; j++)
                 {
                     if (fences[i, j].active)
                     {
-                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
-                    }
-                    else
-                    {
-                        vertical[i, j] = false;
-                        horizontal[i, j] = false;
+                        if (fences[i, j].vertical)
+                        {
+                            Put(vertical, true, i, j);
+                            Put(vertical, true, i, j + 1);
+                        }
+                        else
+                        {
+                            Put(horizontal, true, i, j);
+                            Put(horizontal, true, i + 1, j);
+                        }
                     }
                 }
             }
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize), totalTiles);
-            sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
-            sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
+
+            for (int i = 0; i < vertical.GetLength(0); i++)
+            {
+                for (int j = 0; j < vertical.GetLength(1); j++)
+                {
+                    sensor.AddObservation(vertical[i, j]);
+                    obs.Add(vertical[i, j] ? 1 : 0);
+                }
+            }
+
+            for (int i = 0; i < horizontal.GetLength(0); i++)
+            {
+                for (int j = 0; j < horizontal.GetLength(1); j++)
+                {
+                    sensor.AddObservation(horizontal[i, j]);
+                    obs.Add(horizontal[i, j] ? 1 : 0);
+                }
+            }
+
+            int p0pos = Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize);
+            int p1pos = Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize);
+            int p0dest = Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize);
+            int p1dest = Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize);
+            float p0fences = Normalize(gameManager.GetPlayerStatus(0).fences, 0, PlayerStatus.MAX_FENCES);
+            float p1fences = Normalize(gameManager.GetPlayerStatus(1).fences, 0, PlayerStatus.MAX_FENCES);
+
+
+            sensor.AddOneHotObservation(p0pos, totalTiles);
+            sensor.AddOneHotObservation(p1pos, totalTiles);
+            sensor.AddOneHotObservation(p0dest, totalTiles);
+            sensor.AddOneHotObservation(p1dest, totalTiles);
+            sensor.AddObservation(p0fences);
+            sensor.AddObservation(p1fences);
+            obs.Add(p0pos);
+            obs.Add(p1pos);
+            obs.Add(p0dest);
+            obs.Add(p1dest);
+            obs.Add(p0fences);
+            obs.Add(p1fences);
+
+            //Debug.Log($"Player {player} observations:");
+            string obsStr = "";
+            foreach (float o in obs)
+            {
+                obsStr += o + " ";
+            }
+            //Debug.Log(obsStr);
+
+
         }
         else if (player == 1)
         {
+            List<float> obs = new();
             Fence[,] fences = gameManager.fenceBoard.tiles;
-            for (int i = fenceBoardSize - 1; i >= 0; i--)
+            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
+            bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
+
+            for (int i = 0; i < fenceBoardSize; i++)
             {
-                for (int j = fenceBoardSize - 1; j >= 0; j--)
+                for (int j = 0; j < fenceBoardSize; j++)
                 {
                     if (fences[i, j].active)
-                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
-                    else
-                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
+                    {
+                        int invi = fenceBoardSize - i - 1;
+                        int invj = fenceBoardSize - j - 1;
+                        if (fences[i, j].vertical)
+                        {
+                            Put(vertical, true, invi, invj);
+                            Put(vertical, true, invi, invj + 1);
+                        }
+                        else
+                        {
+                            Put(horizontal, true, invi, invj);
+                            Put(horizontal, true, invi + 1, invj);
+                        }
+                    }
                 }
             }
-            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(1), tileBoardSize), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(0), tileBoardSize), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(1), tileBoardSize), tileBoardSize), totalTiles);
-            sensor.AddOneHotObservation(Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(0), tileBoardSize), tileBoardSize), totalTiles);
-            sensor.AddObservation(gameManager.GetPlayerStatus(1).fences);
-            sensor.AddObservation(gameManager.GetPlayerStatus(0).fences);
+
+            for (int i = 0; i < vertical.GetLength(0); i++)
+            {
+                for (int j = 0; j < vertical.GetLength(1); j++)
+                {
+                    sensor.AddObservation(vertical[i, j]);
+                    obs.Add(vertical[i, j] ? 1 : 0);
+                }
+            }
+
+            for (int i = 0; i < horizontal.GetLength(0); i++)
+            {
+                for (int j = 0; j < horizontal.GetLength(1); j++)
+                {
+                    sensor.AddObservation(horizontal[i, j]);
+                    obs.Add(horizontal[i, j] ? 1 : 0);
+                }
+            }
+
+
+            int p0pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(0), tileBoardSize), tileBoardSize);
+            int p1pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(1), tileBoardSize), tileBoardSize);
+            int p0dest = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(0), tileBoardSize), tileBoardSize);
+            int p1dest = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(1), tileBoardSize), tileBoardSize);
+            float p0fences = Normalize(gameManager.GetPlayerStatus(0).fences, 0, PlayerStatus.MAX_FENCES);
+            float p1fences = Normalize(gameManager.GetPlayerStatus(1).fences, 0, PlayerStatus.MAX_FENCES);
+
+            sensor.AddOneHotObservation(p0pos, totalTiles);
+            sensor.AddOneHotObservation(p1pos, totalTiles);
+            sensor.AddOneHotObservation(p0dest, totalTiles);
+            sensor.AddOneHotObservation(p1dest, totalTiles);
+            sensor.AddObservation(p0fences);
+            sensor.AddObservation(p1fences);
+            obs.Add(p0pos);
+            obs.Add(p1pos);
+            obs.Add(p0dest);
+            obs.Add(p1dest);
+            obs.Add(p0fences);
+            obs.Add(p1fences);
+
+            //Debug.Log($"Player {player} observations:");
+            string obsStr = "";
+            foreach (float o in obs)
+            {
+                obsStr += o + " ";
+            }
+            //Debug.Log(obsStr);
         }
     }
 
-    // THE ACTIONS ARE AS FOLLOWS:
-    // 0                -   TOTALFENCES:            build vertical fence at position
-    // TOTALFENCES      -   TOTALFENCES * 2:        build horizontal fence at position
-    // TOTALFENCES * 2  -   TOTALFENCES * 2 + 13:   move to position
+    // THE ACTIONS ARE AS FOLLOWS (inclusive - exclusive):
+    // 0       -   64:            build vertical fence at position
+    // 64      -   64 * 2:        build horizontal fence at position
+    // 64 * 2  -   64 * 2 + 13:   move to position
     public void Act(int action)
     {
         //Debug.Log($"Player {player} acting with action {action}");
@@ -125,10 +226,10 @@ public class PlayerAgent : Agent
 
     public void EndGame()
     {
-        string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
-        Debug.Log($"I am player {player}, {winner}");
+        //string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
+        //Debug.Log($"I am player {player}, {winner}");
         if (gameManager.winner == -1)
-            AddReward(-0.5f);
+            AddReward(-1f);
         else if (player == gameManager.winner)
             AddReward(1f);
         else
@@ -136,6 +237,9 @@ public class PlayerAgent : Agent
         EndEpisode();
     }
 
+    // 0       -   64:            build vertical fence at position
+    // 64      -   64 * 2:        build horizontal fence at position
+    // 64 * 2  -   64 * 2 + 13:   move to position
     public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
     {
         // WHY ARE THE MASKS -1 INDEXED
@@ -169,12 +273,12 @@ public class PlayerAgent : Agent
                 if (!validVerticalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index, false);
-                    //Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
+                    // Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
                 }
                 if (!validHorizontalBuildsSet.Contains(pos))
                 {
                     actionMask.SetActionEnabled(-1, index + totalFences, false);
-                    //Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
+                    // Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
                 }
             }
         }
@@ -194,7 +298,7 @@ public class PlayerAgent : Agent
             if (!validMovesSet.Contains(move))
             {
                 actionMask.SetActionEnabled(-1, index, false);
-                //Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
+                // Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
             }
         }
         actionMask.SetActionEnabled(-1, totalFences * 2 + 6, true);
@@ -231,4 +335,26 @@ public class PlayerAgent : Agent
     {
         return new Vector2Int(-vector.x, -vector.y);
     }
+
+    private float Normalize(float value, float min, float max)
+    {
+        return (value - min) / (max - min);
+    }
+
+    private void Put<T>(T[,] array, T value, int i, int j)
+    {
+        if (i >= 0 && i < array.GetLength(0) && j >= 0 && j < array.GetLength(1))
+        {
+            array[i, j] = value;
+        }
+    }
+
+    private void AddOneHot(List<float> obs, int value, int size)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            obs.Add(i == value ? 1 : 0);
+        }
+    }
+
 }

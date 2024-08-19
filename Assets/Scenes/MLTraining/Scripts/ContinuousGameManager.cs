@@ -53,7 +53,7 @@ public class ContinuousGameManager : MonoBehaviour
 
     public bool Build(Vector2Int pos, int player, bool vertical, bool validation)
     {
-        if (IsBuildValid(pos, player))
+        if (IsBuildValid(pos, player, vertical))
         {
             Fence fence = fenceBoard.GetByRelativePos(pos);
             fence.Build(vertical);
@@ -94,7 +94,7 @@ public class ContinuousGameManager : MonoBehaviour
         return path != null ? path.Count : 0;
     }
 
-    private bool IsBuildValid(Vector2Int pos, int player)
+    private bool IsBuildValid(Vector2Int pos, int player, bool vertical)
     {
         if (GetPlayerFences(player) <= 0)
         {
@@ -114,8 +114,8 @@ public class ContinuousGameManager : MonoBehaviour
         }
         for (int i = 0; i < 2; i++)
         {
-            Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, IsPlayerVertical(player) ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
-            if (neighbor != null && neighbor.active && neighbor.vertical == IsPlayerVertical(player))
+            Fence neighbor = fenceBoard.GetNeighbor(pos.x, pos.y, vertical ? VERTICAL_NEIGHBORS[i] : HORIZONTAL_NEIGHBORS[i]);
+            if (neighbor != null && neighbor.active && neighbor.vertical == vertical)
             {
                 //Debug.Log("Fence blocking");
                 return false;
