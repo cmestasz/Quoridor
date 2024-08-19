@@ -30,7 +30,6 @@ public class PlayerAgent : Agent
     {
         if (player == 0)
         {
-            List<float> obs = new();
             Fence[,] fences = gameManager.fenceBoard.tiles;
             bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
             bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
@@ -59,7 +58,6 @@ public class PlayerAgent : Agent
                 for (int j = 0; j < vertical.GetLength(1); j++)
                 {
                     sensor.AddObservation(vertical[i, j]);
-                    obs.Add(vertical[i, j] ? 1 : 0);
                 }
             }
 
@@ -68,7 +66,6 @@ public class PlayerAgent : Agent
                 for (int j = 0; j < horizontal.GetLength(1); j++)
                 {
                     sensor.AddObservation(horizontal[i, j]);
-                    obs.Add(horizontal[i, j] ? 1 : 0);
                 }
             }
 
@@ -86,26 +83,9 @@ public class PlayerAgent : Agent
             sensor.AddOneHotObservation(p1dest, totalTiles);
             sensor.AddObservation(p0fences);
             sensor.AddObservation(p1fences);
-            obs.Add(p0pos);
-            obs.Add(p1pos);
-            obs.Add(p0dest);
-            obs.Add(p1dest);
-            obs.Add(p0fences);
-            obs.Add(p1fences);
-
-            //Debug.Log($"Player {player} observations:");
-            string obsStr = "";
-            foreach (float o in obs)
-            {
-                obsStr += o + " ";
-            }
-            //Debug.Log(obsStr);
-
-
         }
         else if (player == 1)
         {
-            List<float> obs = new();
             Fence[,] fences = gameManager.fenceBoard.tiles;
             bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
             bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
@@ -137,7 +117,6 @@ public class PlayerAgent : Agent
                 for (int j = 0; j < vertical.GetLength(1); j++)
                 {
                     sensor.AddObservation(vertical[i, j]);
-                    obs.Add(vertical[i, j] ? 1 : 0);
                 }
             }
 
@@ -146,7 +125,6 @@ public class PlayerAgent : Agent
                 for (int j = 0; j < horizontal.GetLength(1); j++)
                 {
                     sensor.AddObservation(horizontal[i, j]);
-                    obs.Add(horizontal[i, j] ? 1 : 0);
                 }
             }
 
@@ -164,20 +142,6 @@ public class PlayerAgent : Agent
             sensor.AddOneHotObservation(p1dest, totalTiles);
             sensor.AddObservation(p0fences);
             sensor.AddObservation(p1fences);
-            obs.Add(p0pos);
-            obs.Add(p1pos);
-            obs.Add(p0dest);
-            obs.Add(p1dest);
-            obs.Add(p0fences);
-            obs.Add(p1fences);
-
-            //Debug.Log($"Player {player} observations:");
-            string obsStr = "";
-            foreach (float o in obs)
-            {
-                obsStr += o + " ";
-            }
-            //Debug.Log(obsStr);
         }
     }
 
