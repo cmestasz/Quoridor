@@ -42,7 +42,7 @@ public class AgentManager : MonoBehaviour
     public IEnumerator HandleEpisodes()
     {
         yield return new WaitForSeconds(1f);
-        Debug.Log("Episode " + episode);
+        // Debug.Log("Episode " + episode);
         episode++;
         while (gameManager.playing && turn < maxTurns)
         {

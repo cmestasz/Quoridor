@@ -31,41 +31,14 @@ public class PlayerAgent : Agent
         if (player == 0)
         {
             Fence[,] fences = gameManager.fenceBoard.tiles;
-            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
-            bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
             for (int i = 0; i < fenceBoardSize; i++)
             {
                 for (int j = 0; j < fenceBoardSize; j++)
                 {
                     if (fences[i, j].active)
-                    {
-                        if (fences[i, j].vertical)
-                        {
-                            Put(vertical, true, i, j);
-                            Put(vertical, true, i, j + 1);
-                        }
-                        else
-                        {
-                            Put(horizontal, true, i, j);
-                            Put(horizontal, true, i + 1, j);
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < vertical.GetLength(0); i++)
-            {
-                for (int j = 0; j < vertical.GetLength(1); j++)
-                {
-                    sensor.AddObservation(vertical[i, j]);
-                }
-            }
-
-            for (int i = 0; i < horizontal.GetLength(0); i++)
-            {
-                for (int j = 0; j < horizontal.GetLength(1); j++)
-                {
-                    sensor.AddObservation(horizontal[i, j]);
+                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
+                    else
+                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
                 }
             }
 
@@ -87,47 +60,17 @@ public class PlayerAgent : Agent
         else if (player == 1)
         {
             Fence[,] fences = gameManager.fenceBoard.tiles;
-            bool[,] vertical = new bool[fenceBoardSize, fenceBoardSize + 1];
-            bool[,] horizontal = new bool[fenceBoardSize + 1, fenceBoardSize];
 
-            for (int i = 0; i < fenceBoardSize; i++)
+            for (int i = fenceBoardSize - 1; i >= 0; i--)
             {
-                for (int j = 0; j < fenceBoardSize; j++)
+                for (int j = fenceBoardSize - 1; j >= 0; j--)
                 {
                     if (fences[i, j].active)
-                    {
-                        int invi = fenceBoardSize - i - 1;
-                        int invj = fenceBoardSize - j - 1;
-                        if (fences[i, j].vertical)
-                        {
-                            Put(vertical, true, invi, invj);
-                            Put(vertical, true, invi, invj + 1);
-                        }
-                        else
-                        {
-                            Put(horizontal, true, invi, invj);
-                            Put(horizontal, true, invi + 1, invj);
-                        }
-                    }
+                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
+                    else
+                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
                 }
             }
-
-            for (int i = 0; i < vertical.GetLength(0); i++)
-            {
-                for (int j = 0; j < vertical.GetLength(1); j++)
-                {
-                    sensor.AddObservation(vertical[i, j]);
-                }
-            }
-
-            for (int i = 0; i < horizontal.GetLength(0); i++)
-            {
-                for (int j = 0; j < horizontal.GetLength(1); j++)
-                {
-                    sensor.AddObservation(horizontal[i, j]);
-                }
-            }
-
 
             int p0pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(0), tileBoardSize), tileBoardSize);
             int p1pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(1), tileBoardSize), tileBoardSize);
@@ -185,7 +128,7 @@ public class PlayerAgent : Agent
         }
         if (!valid)
             Debug.LogError($"Player {player} made an invalid move: {action}");
-        AddReward(-0.0015f);
+        AddReward(-0.025f);
     }
 
     public void EndGame()
@@ -193,7 +136,7 @@ public class PlayerAgent : Agent
         //string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
         //Debug.Log($"I am player {player}, {winner}");
         if (gameManager.winner == -1)
-            AddReward(-1f);
+            SetReward(-1f);
         else if (player == gameManager.winner)
             AddReward(1f);
         else
