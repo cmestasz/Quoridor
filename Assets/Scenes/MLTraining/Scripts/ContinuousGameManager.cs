@@ -83,6 +83,7 @@ public class ContinuousGameManager : MonoBehaviour
 
             tileBoard.Swap(playerPositions[player], dest);
             playerPositions[player] = dest;
+            tileBoard.GetByRelativePos(dest).player = player;
             return true;
         }
         return false;
