@@ -128,7 +128,6 @@ public class PlayerAgent : Agent
         }
         if (!valid)
             Debug.LogError($"Player {player} made an invalid move: {action}");
-        AddReward(-0.025f);
     }
 
     public void EndGame()

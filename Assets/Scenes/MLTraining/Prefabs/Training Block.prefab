@@ -143,7 +143,7 @@ MonoBehaviour:
   agent1: {fileID: 6507014895239451660}
   agent2: {fileID: 8393957435887255801}
   gameManager: {fileID: 8285084847959896810}
-  maxTurns: 256
+  maxTurns: 100
 --- !u!1 &3589043636579509805
 GameObject:
   m_ObjectHideFlags: 0
