@@ -1,6 +1,0 @@
-D:\Documents\Projects\Quoridor\.venv\Lib\site-packages\torch\__init__.py:696
-_C._set_default_tensor_type(t)
-
-
-D:\Documents\Projects\Quoridor\.venv\lib\site-packages\mlagents\trainers\torch_entities\utils.py:292
-torch.nn.functional.one_hot(_act.T, action_size[i]).float()

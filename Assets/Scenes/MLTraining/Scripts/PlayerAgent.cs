@@ -15,199 +15,150 @@ public class PlayerAgent : Agent
     private int totalTiles;
     private int totalFences;
     private enum FenceStates { Empty, Vertical, Horizontal };
+    private BufferSensorComponent bufferSensor;
 
     public void Init()
     {
         totalTiles = tileBoardSize * tileBoardSize;
         totalFences = fenceBoardSize * fenceBoardSize;
+        bufferSensor = GetComponent<BufferSensorComponent>();
     }
 
     public override void OnEpisodeBegin()
     {
     }
 
-    public override void CollectObservations(VectorSensor sensor)
-    {
-        if (player == 0)
-        {
-            Fence[,] fences = gameManager.fenceBoard.tiles;
-            for (int i = 0; i < fenceBoardSize; i++)
-            {
-                for (int j = 0; j < fenceBoardSize; j++)
-                {
-                    if (fences[i, j].active)
-                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
-                    else
-                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
-                }
-            }
-
-            int p0pos = Vector2IntToIndex(gameManager.GetPlayerPosition(0), tileBoardSize);
-            int p1pos = Vector2IntToIndex(gameManager.GetPlayerPosition(1), tileBoardSize);
-            int p0dest = Vector2IntToIndex(gameManager.GetPlayerDestination(0), tileBoardSize);
-            int p1dest = Vector2IntToIndex(gameManager.GetPlayerDestination(1), tileBoardSize);
-            float p0fences = Normalize(gameManager.GetPlayerStatus(0).fences, 0, PlayerStatus.MAX_FENCES);
-            float p1fences = Normalize(gameManager.GetPlayerStatus(1).fences, 0, PlayerStatus.MAX_FENCES);
-
-
-            sensor.AddOneHotObservation(p0pos, totalTiles);
-            sensor.AddOneHotObservation(p1pos, totalTiles);
-            sensor.AddOneHotObservation(p0dest, totalTiles);
-            sensor.AddOneHotObservation(p1dest, totalTiles);
-            sensor.AddObservation(p0fences);
-            sensor.AddObservation(p1fences);
-        }
-        else if (player == 1)
-        {
-            Fence[,] fences = gameManager.fenceBoard.tiles;
-
-            for (int i = fenceBoardSize - 1; i >= 0; i--)
-            {
-                for (int j = fenceBoardSize - 1; j >= 0; j--)
-                {
-                    if (fences[i, j].active)
-                        sensor.AddOneHotObservation(fences[i, j].vertical ? (int)FenceStates.Vertical : (int)FenceStates.Horizontal, 3);
-                    else
-                        sensor.AddOneHotObservation((int)FenceStates.Empty, 3);
-                }
-            }
-
-            int p0pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(0), tileBoardSize), tileBoardSize);
-            int p1pos = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerPosition(1), tileBoardSize), tileBoardSize);
-            int p0dest = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(0), tileBoardSize), tileBoardSize);
-            int p1dest = Vector2IntToIndex(ReverseVector(gameManager.GetPlayerDestination(1), tileBoardSize), tileBoardSize);
-            float p0fences = Normalize(gameManager.GetPlayerStatus(0).fences, 0, PlayerStatus.MAX_FENCES);
-            float p1fences = Normalize(gameManager.GetPlayerStatus(1).fences, 0, PlayerStatus.MAX_FENCES);
-
-            sensor.AddOneHotObservation(p0pos, totalTiles);
-            sensor.AddOneHotObservation(p1pos, totalTiles);
-            sensor.AddOneHotObservation(p0dest, totalTiles);
-            sensor.AddOneHotObservation(p1dest, totalTiles);
-            sensor.AddObservation(p0fences);
-            sensor.AddObservation(p1fences);
-        }
-    }
-
-    // THE ACTIONS ARE AS FOLLOWS (inclusive - exclusive):
-    // 0       -   64:            build vertical fence at position
-    // 64      -   64 * 2:        build horizontal fence at position
-    // 64 * 2  -   64 * 2 + 13:   move to position
-    public void Act(int action)
-    {
-        //Debug.Log($"Player {player} acting with action {action}");
-        bool valid;
-        if (action < totalFences)
-        {
-            Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
-            if (player == 1)
-                pos = ReverseVector(pos, fenceBoardSize);
-            valid = gameManager.Build(pos, player, true, false);
-            //Debug.Log($"Player {player} Building vertical fence at {pos} {valid}");
-        }
-        else if (action < totalFences * 2)
-        {
-            Vector2Int pos = IndexToVector2Int(action - totalFences, fenceBoardSize);
-            if (player == 1)
-                pos = ReverseVector(pos, fenceBoardSize);
-            valid = gameManager.Build(pos, player, false, false);
-            //Debug.Log($"Player {player} Building horizontal fence at {pos} {valid}");
-        }
-        else
-        {
-            Vector2Int pos;
-            if (player == 1)
-            {
-                pos = InvertVector(TrainingConstants.moves[action - totalFences * 2]) + gameManager.GetPlayerPosition(player);
-            }
-            else
-            {
-                pos = TrainingConstants.moves[action - totalFences * 2] + gameManager.GetPlayerPosition(player);
-            }
-            valid = gameManager.Move(pos, player);
-            // Debug.Log($"Player {player} Moving to {pos} {valid}");
-        }
-        if (!valid)
-            Debug.LogError($"Player {player} made an invalid move: {action}");
-    }
-
     public void EndGame()
     {
-        //string winner = gameManager.winner == -1 ? "It's a draw" : gameManager.winner == player ? "I won" : "I lost";
-        //Debug.Log($"I am player {player}, {winner}");
-        if (gameManager.winner == -1)
-            SetReward(-1f);
-        else if (player == gameManager.winner)
-            AddReward(1f);
+        if (player == gameManager.winner)
+            SetReward(1f);
         else
             SetReward(-1f);
         EndEpisode();
     }
 
-    // 0       -   64:            build vertical fence at position
-    // 64      -   64 * 2:        build horizontal fence at position
-    // 64 * 2  -   64 * 2 + 13:   move to position
-    public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
+    // for normal: playerx, playery, playerxdest, playerydest, enemyx, enemyy, enemyxdest, enemyydest, playerfences, enemyfences
+    // for buffer: (fencex, fencey, vertical) repeat
+    public override void CollectObservations(VectorSensor sensor)
     {
-        // WHY ARE THE MASKS -1 INDEXED
-        List<Vector2Int> validMoves = gameManager.GetValidMoves(player);
-        List<Tuple<Vector2Int, bool>> validBuilds = gameManager.GetValidBuilds(player);
-
-        HashSet<Vector2Int> validMovesSet = new(validMoves);
-        HashSet<Vector2Int> validVerticalBuildsSet = new();
-        HashSet<Vector2Int> validHorizontalBuildsSet = new();
-
-        foreach (Tuple<Vector2Int, bool> build in validBuilds)
-        {
-            if (build.Item2)
-                validVerticalBuildsSet.Add(build.Item1);
-            else
-                validHorizontalBuildsSet.Add(build.Item1);
-        }
-
-        if (player == 1)
-        {
-            validVerticalBuildsSet = ReverseVectors(validVerticalBuildsSet, fenceBoardSize);
-            validHorizontalBuildsSet = ReverseVectors(validHorizontalBuildsSet, fenceBoardSize);
-        }
-
+        Fence[,] fences = gameManager.fenceBoard.tiles;
         for (int i = 0; i < fenceBoardSize; i++)
         {
             for (int j = 0; j < fenceBoardSize; j++)
             {
-                Vector2Int pos = new(i, j);
-                int index = Vector2IntToIndex(pos, fenceBoardSize);
-                if (!validVerticalBuildsSet.Contains(pos))
+                if (fences[i, j].active)
                 {
-                    actionMask.SetActionEnabled(-1, index, false);
-                    // Debug.Log($"Vertical build at {pos} for player {player} is {validVerticalBuildsSet.Contains(pos)}, so we will block action {index}");
-                }
-                if (!validHorizontalBuildsSet.Contains(pos))
-                {
-                    actionMask.SetActionEnabled(-1, index + totalFences, false);
-                    // Debug.Log($"Horizontal build at {pos} for player {player} is {validHorizontalBuildsSet.Contains(pos)}, so we will block action {index + totalFences}");
+                    int x = player == 0 ? i : ReverseValue(i, fenceBoardSize);
+                    int y = player == 0 ? j : ReverseValue(j, fenceBoardSize);
+                    float[] obs = { x, y, fences[i, j].vertical ? 1 : 0 };
+                    bufferSensor.AppendObservation(obs);
                 }
             }
         }
 
-        for (int i = 0; i < TrainingConstants.moves.Length; i++)
+        Vector2Int playerPos = gameManager.GetPlayerPosition(player);
+        int playerX = player == 0 ? playerPos.x : ReverseValue(playerPos.x, tileBoardSize);
+        int playerY = player == 0 ? playerPos.y : ReverseValue(playerPos.y, tileBoardSize);
+        sensor.AddOneHotObservation(playerX, tileBoardSize);
+        sensor.AddOneHotObservation(playerY, tileBoardSize);
+
+        Vector2Int playerDest = gameManager.GetPlayerDestination(player);
+        int playerDestX = player == 0 ? playerDest.x : ReverseValue(playerDest.x, tileBoardSize);
+        int playerDestY = player == 0 ? playerDest.y : ReverseValue(playerDest.y, tileBoardSize);
+        sensor.AddOneHotObservation(playerDestX, tileBoardSize);
+        sensor.AddOneHotObservation(playerDestY, tileBoardSize);
+
+        Vector2Int enemyPos = gameManager.GetPlayerPosition(1 - player);
+        int enemyX = player == 0 ? enemyPos.x : ReverseValue(enemyPos.x, tileBoardSize);
+        int enemyY = player == 0 ? enemyPos.y : ReverseValue(enemyPos.y, tileBoardSize);
+        sensor.AddOneHotObservation(enemyX, tileBoardSize);
+        sensor.AddOneHotObservation(enemyY, tileBoardSize);
+
+        Vector2Int enemyDest = gameManager.GetPlayerDestination(1 - player);
+        int enemyDestX = player == 0 ? enemyDest.x : ReverseValue(enemyDest.x, tileBoardSize);
+        int enemyDestY = player == 0 ? enemyDest.y : ReverseValue(enemyDest.y, tileBoardSize);
+        sensor.AddOneHotObservation(enemyDestX, tileBoardSize);
+        sensor.AddOneHotObservation(enemyDestY, tileBoardSize);
+
+        float playerFences = Normalize(gameManager.GetPlayerStatus(player).fences, 0, PlayerStatus.MAX_FENCES);
+        float enemyFences = Normalize(gameManager.GetPlayerStatus(1 - player).fences, 0, PlayerStatus.MAX_FENCES);
+        sensor.AddObservation(playerFences);
+        sensor.AddObservation(enemyFences);
+    }
+
+    // 0    -   63  :   build vertical fence at position
+    // 64   -   127 :   build horizontal fence at position
+    // 128  -   208 :   move to position
+    public void Act(int action)
+    {
+        bool valid = true;
+        if (action <= 63)
         {
-            Vector2Int move;
-            if (player == 1)
-            {
-                move = InvertVector(TrainingConstants.moves[i]) + gameManager.GetPlayerPosition(player);
-            }
+            Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
+            pos = player == 0 ? pos : ReverseVector(pos, fenceBoardSize);
+            valid = gameManager.Build(pos, player, true, false);
+        } else if (action <= 127)
+        {
+            Vector2Int pos = IndexToVector2Int(action - 64, fenceBoardSize);
+            pos = player == 0 ? pos : ReverseVector(pos, fenceBoardSize);
+            valid = gameManager.Build(pos, player, false, false);
+        } else if (action <= 208)
+        {
+            Vector2Int pos = IndexToVector2Int(action - 128, tileBoardSize);
+            pos = player == 0 ? pos : ReverseVector(pos, tileBoardSize);
+            valid = gameManager.Move(pos, player);
+        }
+
+        if (!valid)
+            Debug.LogError($"Player {player} made an invalid move: {action}");
+    }
+
+    public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
+    {
+        List<Vector2Int> validMoves = gameManager.GetValidMoves(player);
+        List<Tuple<Vector2Int, bool>> validBuilds = gameManager.GetValidBuilds(player);
+
+        HashSet<Vector2Int> validMoveSet = new(validMoves);
+        HashSet<Vector2Int> validVBuildSet = new();
+        HashSet<Vector2Int> validHBuildSet = new();
+        foreach (Tuple<Vector2Int, bool> build in validBuilds)
+        {
+            if (build.Item2)
+                validVBuildSet.Add(build.Item1);
             else
+                validHBuildSet.Add(build.Item1);
+        }
+
+        for (int i = 0; i < 64; i++)
+        {
+            Vector2Int pos = IndexToVector2Int(i, fenceBoardSize);
+            if (!validVBuildSet.Contains(pos))
             {
-                move = TrainingConstants.moves[i] + gameManager.GetPlayerPosition(player);
-            }
-            int index = totalFences * 2 + i;
-            if (!validMovesSet.Contains(move))
-            {
-                actionMask.SetActionEnabled(-1, index, false);
-                // Debug.Log($"Move to {move} for player {player} is {validMovesSet.Contains(move)}, so we will block action {index}");
+                int idx = player == 0 ? i : Vector2IntToIndex(ReverseVector(pos, fenceBoardSize), fenceBoardSize);
+                // Debug.Log($"Disabling vertical fence at {pos} (action {idx}) for player {player}");
+                actionMask.SetActionEnabled(-1, idx, false);
             }
         }
-        actionMask.SetActionEnabled(-1, totalFences * 2 + 6, true);
+        for (int i = 64; i < 128; i++)
+        {
+            Vector2Int pos = IndexToVector2Int(i - 64, fenceBoardSize);
+            if (!validHBuildSet.Contains(pos))
+            {
+                int idx = player == 0 ? i : 64 + Vector2IntToIndex(ReverseVector(pos, fenceBoardSize), fenceBoardSize);
+                // Debug.Log($"Disabling horizontal fence at {pos} (action {idx}) for player {player}");
+                actionMask.SetActionEnabled(-1, idx, false);
+            }
+        }
+        for (int i = 128; i < 209; i++)
+        {
+            Vector2Int pos = IndexToVector2Int(i - 128, tileBoardSize);
+            if (!validMoveSet.Contains(pos))
+            {
+                int idx = player == 0 ? i : 128 + Vector2IntToIndex(ReverseVector(pos, tileBoardSize), tileBoardSize);
+                // Debug.Log($"Disabling move to {pos} (action {idx}) for player {player}");
+                actionMask.SetActionEnabled(-1, idx, false);
+            }
+        }
     }
 
 
@@ -233,7 +184,12 @@ public class PlayerAgent : Agent
 
     private Vector2Int ReverseVector(Vector2Int vector, int size)
     {
-        return new Vector2Int(size - vector.x - 1, size - vector.y - 1);
+        return new Vector2Int(ReverseValue(vector.x, size), ReverseValue(vector.y, size));
+    }
+
+    private int ReverseValue(int value, int size)
+    {
+        return size - value - 1;
     }
 
 
@@ -245,22 +201,6 @@ public class PlayerAgent : Agent
     private float Normalize(float value, float min, float max)
     {
         return (value - min) / (max - min);
-    }
-
-    private void Put<T>(T[,] array, T value, int i, int j)
-    {
-        if (i >= 0 && i < array.GetLength(0) && j >= 0 && j < array.GetLength(1))
-        {
-            array[i, j] = value;
-        }
-    }
-
-    private void AddOneHot(List<float> obs, int value, int size)
-    {
-        for (int i = 0; i < size; i++)
-        {
-            obs.Add(i == value ? 1 : 0);
-        }
     }
 
 }

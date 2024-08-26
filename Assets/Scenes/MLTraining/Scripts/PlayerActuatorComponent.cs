@@ -5,13 +5,13 @@ using UnityEngine;
 public class PlayerActuatorComponent : ActuatorComponent
 {
     [SerializeField] private PlayerAgent playerAgent;
-    private int totalActions = 13 + FenceBoard.SIZE * FenceBoard.SIZE * 2;
+    private const int TOTAL_ACTIONS = 209;
 
-    public override ActionSpec ActionSpec => ActionSpec.MakeDiscrete(new int[] { totalActions });
+    public override ActionSpec ActionSpec => ActionSpec.MakeDiscrete(new int[] { TOTAL_ACTIONS });
 
     public override IActuator[] CreateActuators()
     {
-        IActuator[] actuators = new IActuator[] { new PlayerActuator(totalActions, playerAgent) };
+        IActuator[] actuators = new IActuator[] { new PlayerActuator(TOTAL_ACTIONS, playerAgent) };
         return actuators;
     }
 

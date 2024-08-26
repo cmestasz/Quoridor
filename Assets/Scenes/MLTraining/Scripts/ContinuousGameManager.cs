@@ -204,18 +204,36 @@ public class ContinuousGameManager : MonoBehaviour
     {
         Vector2Int current = playerPositions[player];
         List<Vector2Int> validMoves = new();
-        for (int i = -2; i <= 2; i++)
+        foreach (Vector2Int move in TrainingConstants.moves)
         {
-            for (int j = -2; j <= 2; j++)
+            Vector2Int dest = new(current.x + move.x, current.y + move.y);
+            if (move == Vector2Int.zero || IsMoveValid(player, dest))
             {
-                Vector2Int dest = new(current.x + i, current.y + j);
-                if (IsMoveValid(player, dest))
-                {
-                    validMoves.Add(dest);
-                }
+                validMoves.Add(dest);
             }
         }
         return validMoves;
+    }
+
+    public List<Vector2Int> GetInvalidMoves(int player)
+    {
+        Vector2Int current = playerPositions[player];
+        List<Vector2Int> invalidMoves = new();
+        foreach (Vector2Int move in TrainingConstants.moves)
+        {
+            // you can always pass your turn
+            if (move == Vector2Int.zero)
+            {
+                continue;
+            }
+
+            Vector2Int dest = new(current.x + move.x, current.y + move.y);
+            if (!IsMoveValid(player, dest))
+            {
+                invalidMoves.Add(dest);
+            }
+        }
+        return invalidMoves;
     }
 
     public List<Tuple<Vector2Int, bool>> GetValidBuilds(int player)
@@ -250,6 +268,35 @@ public class ContinuousGameManager : MonoBehaviour
         }
         return validBuilds;
     }
+
+    // returns a list of invalid builds (UNLESS there are no fences left, in which case it returns null)
+    public List<Tuple<Vector2Int, bool>> GetInvalidBuilds(int player)
+    {
+        if (GetPlayerFences(player) <= 0)
+        {
+            return null;
+        }
+        List<Tuple<Vector2Int, bool>> invalidBuilds = new();
+        for (int i = 0; i < fenceBoard.BoardSize; i++)
+        {
+            for (int j = 0; j < fenceBoard.BoardSize; j++)
+            {
+                Vector2Int pos = new(i, j);
+                if (!Build(pos, player, true, true) || !IsPostBuildValid())
+                {
+                    invalidBuilds.Add(new(pos, true));
+                }
+                lastFence.Unbuild();
+                if (!Build(pos, player, false, true) || !IsPostBuildValid())
+                {
+                    invalidBuilds.Add(new(pos, false));
+                }
+                lastFence.Unbuild();
+            }
+        }
+        return invalidBuilds;
+    }
+        
 
     private bool IsPlayerVertical(int player)
     {

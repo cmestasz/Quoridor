@@ -1,24 +1,24 @@
 {
     "quoridor": {
-        "elo": 1195.5556715901548,
+        "elo": 1199.5,
         "checkpoints": [
             {
-                "steps": 1374,
-                "file_path": "results\\test\\quoridor\\quoridor-1374.onnx",
-                "reward": -3.772727597843517,
-                "creation_time": 1724164867.1306412,
+                "steps": 50,
+                "file_path": "results\\test\\quoridor\\quoridor-50.onnx",
+                "reward": -1.0,
+                "creation_time": 1724518808.216941,
                 "auxillary_file_paths": [
-                    "results\\test\\quoridor\\quoridor-1374.pt"
+                    "results\\test\\quoridor\\quoridor-50.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 1374,
+            "steps": 50,
             "file_path": "results\\test\\quoridor.onnx",
-            "reward": -3.772727597843517,
-            "creation_time": 1724164867.1306412,
+            "reward": -1.0,
+            "creation_time": 1724518808.216941,
             "auxillary_file_paths": [
-                "results\\test\\quoridor\\quoridor-1374.pt"
+                "results\\test\\quoridor\\quoridor-50.pt"
             ]
         }
     },
