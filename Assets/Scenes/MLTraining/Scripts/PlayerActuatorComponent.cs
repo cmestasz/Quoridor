@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerActuatorComponent : ActuatorComponent
 {
     [SerializeField] private PlayerAgent playerAgent;
-    private const int TOTAL_ACTIONS = 209;
+    private const int TOTAL_ACTIONS = 141;
 
     public override ActionSpec ActionSpec => ActionSpec.MakeDiscrete(new int[] { TOTAL_ACTIONS });
 

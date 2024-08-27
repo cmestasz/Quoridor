@@ -8,7 +8,7 @@ public class ContinuousGameManager : MonoBehaviour
     public TileBoard tileBoard;
     public FenceBoard fenceBoard;
     [SerializeField] private Color[] playerColors;
-    [SerializeField] private AgentManager agentManager;
+    [SerializeField] private AgentsManager agentManager;
     private AStar aStar;
     private Vector2Int[] playerPositions;
     private Vector2Int[] playerDestinations;

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 722785028330218808}
   - component: {fileID: 6507014895239451660}
   - component: {fileID: 7356191936980051528}
-  - component: {fileID: 5346112669906871274}
+  - component: {fileID: 8344566683534522045}
   m_Layer: 0
   m_Name: A1
   m_TagString: Untagged
@@ -48,12 +48,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 74
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: d1000000
-    VectorActionSize: d1000000
+      BranchSizes: 8d000000
+    VectorActionSize: 8d000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAgent: {fileID: 6507014895239451660}
---- !u!114 &5346112669906871274
+--- !u!114 &8344566683534522045
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -106,12 +106,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 252268310484863398}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Script: {fileID: 11500000, guid: b9b6e15d68f297a4b914c211d045c27e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SensorName: BufferSensor
-  m_ObservableSize: 3
-  m_MaxNumObservables: 12
+  playerAgent: {fileID: 6507014895239451660}
 --- !u!1 &2972189061635523362
 GameObject:
   m_ObjectHideFlags: 0
@@ -172,7 +170,7 @@ GameObject:
   - component: {fileID: 6559077421437534378}
   - component: {fileID: 8393957435887255801}
   - component: {fileID: 8545556274266403023}
-  - component: {fileID: 3165372942357453261}
+  - component: {fileID: 6767196633006839091}
   m_Layer: 0
   m_Name: A2
   m_TagString: Untagged
@@ -208,12 +206,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 74
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
-      BranchSizes: d1000000
-    VectorActionSize: d1000000
+      BranchSizes: 8d000000
+    VectorActionSize: 8d000000
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -257,7 +255,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAgent: {fileID: 8393957435887255801}
---- !u!114 &3165372942357453261
+--- !u!114 &6767196633006839091
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -266,12 +264,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3589043636579509805}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Script: {fileID: 11500000, guid: b9b6e15d68f297a4b914c211d045c27e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SensorName: BufferSensor
-  m_ObservableSize: 3
-  m_MaxNumObservables: 12
+  playerAgent: {fileID: 8393957435887255801}
 --- !u!1 &4395211881839714061
 GameObject:
   m_ObjectHideFlags: 0

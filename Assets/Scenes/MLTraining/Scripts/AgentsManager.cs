@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.MLAgents;
 using UnityEngine;
 
-public class AgentManager : MonoBehaviour
+public class AgentsManager : MonoBehaviour
 {
     [SerializeField] private PlayerAgent agent1;
     [SerializeField] private PlayerAgent agent2;
