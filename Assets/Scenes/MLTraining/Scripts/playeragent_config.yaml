@@ -1,28 +1,34 @@
 behaviors:
   quoridor:
-    trainer_type: ppo
+    trainer_type: sac
     summary_freq: 15000
     time_horizon: 64
     max_steps: 1000000
     hyperparameters:
       learning_rate: 3.0e-4
       batch_size: 128
-      buffer_size: 10240
-      learning_rate_schedule: linear
-      beta: 5.0e-3
+      buffer_size: 75000
+      learning_rate_schedule: constant
+      buffer_init_steps: 10000
+      init_entcoef: 0.5
+      steps_per_update: 5
     network_settings:
       hidden_units: 512
       num_layers: 2
+      vis_encode_type: match3
       memory:
-        memory_size: 64
-        sequence_length: 32
+        memory_size: 128
+        sequence_length: 64
     reward_signals:
       extrinsic:
         gamma: 0.995
       curiosity:
         gamma: 0.995
         strength: 0.01
+        network_settings:
+          vis_encode_type: match3
     self_play:
-      save_steps: 20000
-      team_change: 100000
+      save_steps: 30000
+      team_change: 150000
       play_against_latest_model_ratio: 0.5
+      window: 15

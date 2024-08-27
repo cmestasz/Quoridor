@@ -14,7 +14,7 @@ public class PlayerAgent : Agent
     private int fenceBoardSize = FenceBoard.SIZE;
     private int totalTiles;
     private int totalFences;
-    public enum BoardState { PlayerPos, EnemyPos, PlayerDest, EnemyDest, Fence };
+    public enum BoardState { Empty, PlayerPos, EnemyPos, PlayerDest, EnemyDest, Fence };
     public const int BOARD_STATES = 5;
     private BoardState[,] fullBoard;
 
@@ -58,8 +58,33 @@ public class PlayerAgent : Agent
         return obs.Count;
     }
 
+    private void DebugBoard()
+    {
+        string board = "";
+        for (int i = fullBoard.GetLength(0) - 1; i >= 0 ; i--)
+        {
+            for (int j = 0; j < fullBoard.GetLength(1); j++)
+            {
+                board += fullBoard[j, i] switch
+                {
+                    BoardState.PlayerPos => "P",
+                    BoardState.EnemyPos => "E",
+                    BoardState.PlayerDest => "D",
+                    BoardState.EnemyDest => "X",
+                    BoardState.Fence => "F",
+                    BoardState.Empty => "O",
+                    _ => "/",
+                };
+            }
+            board += "\n";
+        }
+        Debug.Log($"Player {player} board:");
+        Debug.Log(board);
+    }
+
     public int FillVisualObservation(ObservationWriter writer)
     {
+        // DebugBoard();
         int written = 0;
         for (int i = 0; i < fullBoard.GetLength(0); i++)
         {
@@ -67,7 +92,8 @@ public class PlayerAgent : Agent
             {
                 for (int c = 0; c < BOARD_STATES; c++)
                 {
-                    writer[c, j, i] = fullBoard[i, j] == (BoardState)c ? 1f : 0f;
+                    float value = fullBoard[i, j] == (BoardState)c + 1 ? 1f : 0f;
+                    writer[c, j, i] = value;
                     written++;
                 }
             }

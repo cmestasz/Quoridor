@@ -34,8 +34,8 @@ public class PlayerSensorComponenet : SensorComponent
 
         public ObservationSpec GetObservationSpec()
         {
-            // int size = FenceBoard.SIZE + TileBoard.SIZE;
-            return ObservationSpec.Visual(PlayerAgent.BOARD_STATES, 20, 20);
+            int size = FenceBoard.SIZE + TileBoard.SIZE;
+            return ObservationSpec.Visual(PlayerAgent.BOARD_STATES, size, size);
         }
 
         public void Reset()
