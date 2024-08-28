@@ -13,7 +13,7 @@ public class PlayerSensorComponenet : SensorComponent
 
     public class PlayerVisualSensor : ISensor
     {
-        private PlayerAgent playerAgent;
+        private readonly PlayerAgent playerAgent;
         
         public PlayerVisualSensor(PlayerAgent playerAgent)
         {
@@ -55,7 +55,7 @@ public class PlayerSensorComponenet : SensorComponent
 
     public class PlayerVectorSensor : ISensor
     {
-        private PlayerAgent playerAgent;
+        private readonly PlayerAgent playerAgent;
 
         public PlayerVectorSensor(PlayerAgent playerAgent)
         {

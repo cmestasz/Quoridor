@@ -15,7 +15,7 @@ public class PlayerAgent : Agent
     private int totalTiles;
     private int totalFences;
     public enum BoardState { Empty, PlayerPos, EnemyPos, PlayerDest, EnemyDest, Fence };
-    public const int BOARD_STATES = 5;
+    public const int BOARD_STATES = 6;
     private BoardState[,] fullBoard;
 
 
@@ -41,6 +41,28 @@ public class PlayerAgent : Agent
         EndEpisode();
     }
 
+    public override void CollectObservations(VectorSensor sensor)
+    {
+        
+        fullBoard = BuildBoard();
+        for (int i = fullBoard.GetLength(0) - 1; i >= 0 ; i++)
+        {
+            for (int j = 0; j < fullBoard.GetLength(1); j++)
+            {
+                sensor.AddOneHotObservation((int)fullBoard[j, i], BOARD_STATES);
+            }
+        }
+
+        float playerFences = gameManager.GetPlayerStatus(player).fences;
+        playerFences = Normalize(playerFences, 0, PlayerStatus.MAX_FENCES);
+        float enemyFences = gameManager.GetPlayerStatus(1 - player).fences;
+        enemyFences = Normalize(enemyFences, 0, PlayerStatus.MAX_FENCES);
+        sensor.AddObservation(playerFences);
+        sensor.AddObservation(enemyFences);
+        
+    }
+
+
     public void UpdateVisualObservation()
     {
         fullBoard = BuildBoard();
@@ -61,7 +83,7 @@ public class PlayerAgent : Agent
     private void DebugBoard()
     {
         string board = "";
-        for (int i = fullBoard.GetLength(0) - 1; i >= 0 ; i--)
+        for (int i = fullBoard.GetLength(0) - 1; i >= 0; i--)
         {
             for (int j = 0; j < fullBoard.GetLength(1); j++)
             {
