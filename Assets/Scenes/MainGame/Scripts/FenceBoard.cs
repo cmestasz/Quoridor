@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using static Constants;
 
 public class FenceBoard : Board<Fence>
 {
-    public const int SIZE = 8;
-    public override int BoardSize => SIZE;
+    public override int BoardSize => FENCE_BOARD_SIZE;
 
     // Start is called before the first frame update
     public void Init()

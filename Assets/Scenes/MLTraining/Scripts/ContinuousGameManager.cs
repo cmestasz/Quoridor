@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Validations;
+using static Constants;
 
 public class ContinuousGameManager : MonoBehaviour
 {
@@ -138,7 +140,7 @@ public class ContinuousGameManager : MonoBehaviour
             //Debug.Log("Tile out of bounds");
             return false;
         }
-        if (!IsUnblocked(dest.x, dest.y, player))
+        if (!IsUnblocked(dest.x, dest.y, tileBoard.tiles, player))
         {
             //Debug.Log("Tile blocked");
             return false;
@@ -148,7 +150,7 @@ public class ContinuousGameManager : MonoBehaviour
             //Debug.Log("Tile unreachable");
             return false;
         }
-        if (!IsPassable(playerPos.x, playerPos.y, dest.x, dest.y))
+        if (!IsPassable(playerPos.x, playerPos.y, dest.x, dest.y, fenceBoard.tiles, tileBoard.tiles))
         {
             //Debug.Log("Tile impassable");
             return false;
@@ -185,26 +187,13 @@ public class ContinuousGameManager : MonoBehaviour
         this.winner = winner;
     }
 
-    public Vector2Int GetPlayerPosition(int player)
-    {
-        return playerPositions[player];
-    }
 
-    public Vector2Int GetPlayerDestination(int player)
-    {
-        return playerDestinations[player];
-    }
-
-    public PlayerStatus GetPlayerStatus(int player)
-    {
-        return playersStatus[player];
-    }
 
     public List<Vector2Int> GetValidMoves(int player)
     {
         Vector2Int current = playerPositions[player];
         List<Vector2Int> validMoves = new();
-        foreach (Vector2Int move in TrainingConstants.moves)
+        foreach (Vector2Int move in MOVES)
         {
             Vector2Int dest = new(current.x + move.x, current.y + move.y);
             if (move == Vector2Int.zero || IsMoveValid(player, dest))
@@ -219,7 +208,7 @@ public class ContinuousGameManager : MonoBehaviour
     {
         Vector2Int current = playerPositions[player];
         List<Vector2Int> invalidMoves = new();
-        foreach (Vector2Int move in TrainingConstants.moves)
+        foreach (Vector2Int move in MOVES)
         {
             // you can always pass your turn
             if (move == Vector2Int.zero)
@@ -296,7 +285,21 @@ public class ContinuousGameManager : MonoBehaviour
         }
         return invalidBuilds;
     }
-        
+
+    public Vector2Int GetPlayerPosition(int player)
+    {
+        return playerPositions[player];
+    }
+
+    public Vector2Int GetPlayerDestination(int player)
+    {
+        return playerDestinations[player];
+    }
+
+    public PlayerStatus GetPlayerStatus(int player)
+    {
+        return playersStatus[player];
+    }
 
     private bool IsPlayerVertical(int player)
     {
@@ -312,40 +315,4 @@ public class ContinuousGameManager : MonoBehaviour
     {
         return playersStatus[player].fences;
     }
-
-    private bool IsReachable(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.IsReachable(row, col, destRow, destCol);
-    }
-
-    private bool IsPassable(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.IsPassable(row, col, destRow, destCol, fenceBoard.tiles, tileBoard.tiles);
-    }
-
-    private int GetDistance(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.GetDistance(row, col, destRow, destCol);
-    }
-
-    private bool IsTileInBounds(int row, int col)
-    {
-        return GameManager.IsTileInBounds(row, col);
-    }
-
-    private bool IsFenceInBounds(int row, int col)
-    {
-        return GameManager.IsFenceInBounds(row, col);
-    }
-
-    private bool IsUnblocked(int row, int col, int player)
-    {
-        return GameManager.IsUnblocked(row, col, tileBoard.tiles, player);
-    }
-
-    private bool IsDestination(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.IsDestination(row, col, destRow, destCol);
-    }
-
 }

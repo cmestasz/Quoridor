@@ -1,5 +1,6 @@
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using static Constants;
 
 public class PlayerSensorComponenet : SensorComponent
 {
@@ -34,7 +35,7 @@ public class PlayerSensorComponenet : SensorComponent
 
         public ObservationSpec GetObservationSpec()
         {
-            int size = FenceBoard.SIZE + TileBoard.SIZE;
+            int size = FENCE_BOARD_SIZE + TILE_BOARD_SIZE;
             return ObservationSpec.Visual(PlayerAgent.BOARD_STATES, size, size);
         }
 

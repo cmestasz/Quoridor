@@ -1,12 +1,9 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using static Constants;
 
 public class TileBoard : Board<Tile>
 {
-    public const int SIZE = 9;
-    public override int BoardSize => SIZE;
+    public override int BoardSize => TILE_BOARD_SIZE;
 
     public void Init()
     {

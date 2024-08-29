@@ -18,7 +18,7 @@ public class PlayerActuatorComponent : ActuatorComponent
     public class PlayerActuator : IActuator
     {
         private ActionSpec actionSpec;
-        private PlayerAgent playerAgent;
+        private readonly PlayerAgent playerAgent;
 
         public PlayerActuator(int totalActions, PlayerAgent playerAgent)
         {

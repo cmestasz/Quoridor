@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using static Constants;
 
 public abstract class Board<T> : MonoBehaviour where T : MonoBehaviour
 {
     [SerializeField] protected GameObject prefab;
     public T[,] tiles;
     public abstract int BoardSize { get; }
-    protected const float BOARD_SCALE = 1;
     protected float offset;
 
     public void InitBoard()

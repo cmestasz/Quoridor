@@ -5,15 +5,12 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
+using static Constants;
 
 public class PlayerAgent : Agent
 {
     [SerializeField] private ContinuousGameManager gameManager;
     [SerializeField] private int player;
-    private int tileBoardSize = TileBoard.SIZE;
-    private int fenceBoardSize = FenceBoard.SIZE;
-    private int totalTiles;
-    private int totalFences;
     public enum BoardState { Empty, PlayerPos, EnemyPos, PlayerDest, EnemyDest, Fence };
     public const int BOARD_STATES = 6;
     private BoardState[,] fullBoard;
@@ -21,10 +18,7 @@ public class PlayerAgent : Agent
 
     public void Init()
     {
-        totalTiles = tileBoardSize * tileBoardSize;
-        totalFences = fenceBoardSize * fenceBoardSize;
-
-        int fullSize = tileBoardSize + fenceBoardSize;
+        int fullSize = TILE_BOARD_SIZE + FENCE_BOARD_SIZE;
         fullBoard = new BoardState[fullSize, fullSize];
     }
 
@@ -131,38 +125,38 @@ public class PlayerAgent : Agent
 
     private BoardState[,] BuildBoard()
     {
-        int size = tileBoardSize + fenceBoardSize;
+        int size = TILE_BOARD_SIZE + FENCE_BOARD_SIZE;
         BoardState[,] board = new BoardState[size, size];
 
         Vector2Int playerPos = gameManager.GetPlayerPosition(player);
-        int playerX = player == 0 ? playerPos.x : ReverseValue(playerPos.x, tileBoardSize);
-        int playerY = player == 0 ? playerPos.y : ReverseValue(playerPos.y, tileBoardSize);
+        int playerX = player == 0 ? playerPos.x : ReverseValue(playerPos.x, TILE_BOARD_SIZE);
+        int playerY = player == 0 ? playerPos.y : ReverseValue(playerPos.y, TILE_BOARD_SIZE);
         board[playerX * 2, playerY * 2] = BoardState.PlayerPos;
 
         Vector2Int playerDest = gameManager.GetPlayerDestination(player);
-        int playerDestX = player == 0 ? playerDest.x : ReverseValue(playerDest.x, tileBoardSize);
-        int playerDestY = player == 0 ? playerDest.y : ReverseValue(playerDest.y, tileBoardSize);
+        int playerDestX = player == 0 ? playerDest.x : ReverseValue(playerDest.x, TILE_BOARD_SIZE);
+        int playerDestY = player == 0 ? playerDest.y : ReverseValue(playerDest.y, TILE_BOARD_SIZE);
         board[playerDestX * 2, playerDestY * 2] = BoardState.PlayerDest;
 
         Vector2Int enemyPos = gameManager.GetPlayerPosition(1 - player);
-        int enemyX = player == 0 ? enemyPos.x : ReverseValue(enemyPos.x, tileBoardSize);
-        int enemyY = player == 0 ? enemyPos.y : ReverseValue(enemyPos.y, tileBoardSize);
+        int enemyX = player == 0 ? enemyPos.x : ReverseValue(enemyPos.x, TILE_BOARD_SIZE);
+        int enemyY = player == 0 ? enemyPos.y : ReverseValue(enemyPos.y, TILE_BOARD_SIZE);
         board[enemyX * 2, enemyY * 2] = BoardState.EnemyPos;
 
         Vector2Int enemyDest = gameManager.GetPlayerDestination(1 - player);
-        int enemyDestX = player == 0 ? enemyDest.x : ReverseValue(enemyDest.x, tileBoardSize);
-        int enemyDestY = player == 0 ? enemyDest.y : ReverseValue(enemyDest.y, tileBoardSize);
+        int enemyDestX = player == 0 ? enemyDest.x : ReverseValue(enemyDest.x, TILE_BOARD_SIZE);
+        int enemyDestY = player == 0 ? enemyDest.y : ReverseValue(enemyDest.y, TILE_BOARD_SIZE);
         board[enemyDestX * 2, enemyDestY * 2] = BoardState.EnemyDest;
 
         Fence[,] fences = gameManager.fenceBoard.tiles;
-        for (int i = 0; i < fenceBoardSize; i++)
+        for (int i = 0; i < FENCE_BOARD_SIZE; i++)
         {
-            for (int j = 0; j < fenceBoardSize; j++)
+            for (int j = 0; j < FENCE_BOARD_SIZE; j++)
             {
                 if (fences[i, j].active)
                 {
-                    int x = player == 0 ? i : ReverseValue(i, fenceBoardSize);
-                    int y = player == 0 ? j : ReverseValue(j, fenceBoardSize);
+                    int x = player == 0 ? i : ReverseValue(i, FENCE_BOARD_SIZE);
+                    int y = player == 0 ? j : ReverseValue(j, FENCE_BOARD_SIZE);
                     int ox = x * 2 + 1;
                     int oy = y * 2 + 1;
 
@@ -193,23 +187,23 @@ public class PlayerAgent : Agent
         bool valid;
         if (action <= 63)
         {
-            Vector2Int pos = IndexToVector2Int(action, fenceBoardSize);
-            pos = player == 0 ? pos : ReverseVector(pos, fenceBoardSize);
+            Vector2Int pos = IndexToVector2Int(action, FENCE_BOARD_SIZE);
+            pos = player == 0 ? pos : ReverseVector(pos, FENCE_BOARD_SIZE);
             valid = gameManager.Build(pos, player, true, false);
         }
         else if (action <= 127)
         {
-            Vector2Int pos = IndexToVector2Int(action - 64, fenceBoardSize);
-            pos = player == 0 ? pos : ReverseVector(pos, fenceBoardSize);
+            Vector2Int pos = IndexToVector2Int(action - 64, FENCE_BOARD_SIZE);
+            pos = player == 0 ? pos : ReverseVector(pos, FENCE_BOARD_SIZE);
             valid = gameManager.Build(pos, player, false, false);
         }
         else
         {
             Vector2Int pos;
             if (player == 0)
-                pos = TrainingConstants.moves[action - 128] + gameManager.GetPlayerPosition(player);
+                pos = MOVES[action - 128] + gameManager.GetPlayerPosition(player);
             else
-                pos = InvertVector(TrainingConstants.moves[action - 128]) + gameManager.GetPlayerPosition(player);
+                pos = InvertVector(MOVES[action - 128]) + gameManager.GetPlayerPosition(player);
             valid = gameManager.Move(pos, player);
         }
 
@@ -235,32 +229,32 @@ public class PlayerAgent : Agent
 
         for (int i = 0; i < 64; i++)
         {
-            Vector2Int pos = IndexToVector2Int(i, fenceBoardSize);
+            Vector2Int pos = IndexToVector2Int(i, FENCE_BOARD_SIZE);
             if (!validVBuildSet.Contains(pos))
             {
-                int idx = player == 0 ? i : Vector2IntToIndex(ReverseVector(pos, fenceBoardSize), fenceBoardSize);
+                int idx = player == 0 ? i : Vector2IntToIndex(ReverseVector(pos, FENCE_BOARD_SIZE), FENCE_BOARD_SIZE);
                 // Debug.Log($"Disabling vertical fence at {pos} (action {idx}) for player {player}");
                 actionMask.SetActionEnabled(-1, idx, false);
             }
         }
         for (int i = 64; i < 128; i++)
         {
-            Vector2Int pos = IndexToVector2Int(i - 64, fenceBoardSize);
+            Vector2Int pos = IndexToVector2Int(i - 64, FENCE_BOARD_SIZE);
             if (!validHBuildSet.Contains(pos))
             {
-                int idx = player == 0 ? i : 64 + Vector2IntToIndex(ReverseVector(pos, fenceBoardSize), fenceBoardSize);
+                int idx = player == 0 ? i : 64 + Vector2IntToIndex(ReverseVector(pos, FENCE_BOARD_SIZE), FENCE_BOARD_SIZE);
                 // Debug.Log($"Disabling horizontal fence at {pos} (action {idx}) for player {player}");
                 actionMask.SetActionEnabled(-1, idx, false);
             }
         }
-        int movesLength = TrainingConstants.moves.Length;
+        int movesLength = MOVES.Length;
         for (int i = 0; i < movesLength; i++)
         {
             Vector2Int move;
             if (player == 0)
-                move = TrainingConstants.moves[i] + gameManager.GetPlayerPosition(player);
+                move = MOVES[i] + gameManager.GetPlayerPosition(player);
             else
-                move = TrainingConstants.moves[movesLength - i - 1] + gameManager.GetPlayerPosition(player);
+                move = MOVES[movesLength - i - 1] + gameManager.GetPlayerPosition(player);
             if (!validMoveSet.Contains(move))
             {
                 int idx = 128 + i;

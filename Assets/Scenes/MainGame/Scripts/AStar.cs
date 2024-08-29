@@ -1,21 +1,19 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using static Validations;
+using static Constants;
 
 public class AStar
 {
-    private Tile[,] tiles;
-    private Fence[,] fences;
-    private int tileBoardSize;
-    private Vector2Int[] neighbors;
+    private readonly Tile[,] tiles;
+    private readonly Fence[,] fences;
+    private readonly Vector2Int[] neighbors;
 
     public AStar(Tile[,] tiles, Fence[,] fences)
     {
         this.tiles = tiles;
         this.fences = fences;
-        tileBoardSize = TileBoard.SIZE;
         neighbors = new Vector2Int[]
             {
                 new(-1, 0),
@@ -25,26 +23,6 @@ public class AStar
             };
     }
 
-    private bool IsTileInBounds(int row, int col)
-    {
-        return GameManager.IsTileInBounds(row, col);
-    }
-
-    private bool IsPassable(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.IsPassable(row, col, destRow, destCol, fences, tiles);
-    }
-
-    private bool IsUnblocked(int row, int col, int player)
-    {
-        return GameManager.IsUnblocked(row, col, tiles, player);
-    }
-
-    private bool IsDestination(int row, int col, int destRow, int destCol)
-    {
-        return GameManager.IsDestination(row, col, destRow, destCol);
-    }
-
     private float GetHValue(int row, int col, int destRow, int destCol)
     {
         return Math.Abs(row - destRow) + Math.Abs(col - destCol);
@@ -52,9 +30,9 @@ public class AStar
 
     public List<Vector2Int> FindPath(int srcRow, int srcCol, int destRow, int destCol, int player)
     {
-        for (int x = 0; x < tileBoardSize; x++)
+        for (int x = 0; x < TILE_BOARD_SIZE; x++)
         {
-            for (int y = 0; y < tileBoardSize; y++)
+            for (int y = 0; y < TILE_BOARD_SIZE; y++)
             {
                 tiles[x, y].ResetState();
             }
@@ -65,7 +43,7 @@ public class AStar
             return null;
         }
 
-        bool[,] closedList = new bool[tileBoardSize, tileBoardSize];
+        bool[,] closedList = new bool[TILE_BOARD_SIZE, TILE_BOARD_SIZE];
 
         int i = srcRow, j = srcCol;
         tiles[i, j].f = 0.0f;
@@ -89,7 +67,7 @@ public class AStar
                 int row = i + neighbor.x;
                 int col = j + neighbor.y;
 
-                if (IsTileInBounds(row, col) && !IsUnblocked(row, col, player) && !closedList[row, col])
+                if (IsTileInBounds(row, col) && !IsUnblocked(row, col, tiles, player) && !closedList[row, col])
                 {
                     closedList[row, col] = true;
                     foreach (Vector2Int specialNeighbor in neighbors)
@@ -112,7 +90,7 @@ public class AStar
 
     private List<Vector2Int> ManageNeighbor(int i, int j, int row, int col, int destRow, int destCol, bool[,] closedList, PriorityQueue<double, Vector2Int> openList)
     {
-        if (IsTileInBounds(row, col) && IsPassable(i, j, row, col) && !closedList[row, col])
+        if (IsTileInBounds(row, col) && IsPassable(i, j, row, col, fences, tiles) && !closedList[row, col])
         {
             if (IsDestination(row, col, destRow, destCol))
             {
