@@ -145,11 +145,10 @@ public class AStar
         {
             Color color = i % 2 == 0 ? Color.red : Color.blue;
             path.Add(new Vector2Int((int)dest.transform.position.x, (int)dest.transform.position.y));
-            Debug.DrawLine(dest.transform.position, dest.prev.transform.position, color, 3.0f);
+            //Debug.DrawLine(dest.transform.position, dest.prev.transform.position, color, 3.0f);
             dest = dest.prev;
             i++;
         }
-        path.Reverse();
         return path;
     }
 }

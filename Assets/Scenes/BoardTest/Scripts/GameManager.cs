@@ -97,6 +97,7 @@ public class GameManager : MonoBehaviour
             lastFence = fence;
             if (PostValidateBuild())
             {
+                playersStatus[curr].fences--;
                 PassTurn();
             }
         }
@@ -117,6 +118,7 @@ public class GameManager : MonoBehaviour
 
             tileBoard.Swap(playerPositions[curr], dest);
             playerPositions[curr] = dest;
+            tileBoard.GetByRelativePos(dest).player = curr;
             PassTurn();
         }
     }
@@ -141,6 +143,11 @@ public class GameManager : MonoBehaviour
 
     private bool IsBuildValid(Vector2Int pos)
     {
+        if (playersStatus[curr].fences <= 0)
+        {
+            Debug.Log("No fences left");
+            return false;
+        }
         Fence fence = fenceBoard.GetByRelativePos(pos);
         if (fence == null)
         {
@@ -256,8 +263,8 @@ public class GameManager : MonoBehaviour
                 diry = -1;
 
             return
-                (dirx != 0 && tiles[row + dirx, col].type == Tile.PLAYER && IsPassable(row + dirx, col, destRow, destCol, fences, tiles)) ||
-                (diry != 0 && tiles[row, col + diry].type == Tile.PLAYER && IsPassable(row, col + diry, destRow, destCol, fences, tiles));
+                (dirx != 0 && tiles[row + dirx, col].type == Tile.PLAYER && IsPassable(row, col, row + dirx, col, fences, tiles) && IsPassable(row + dirx, col, destRow, destCol, fences, tiles)) ||
+                (diry != 0 && tiles[row, col + diry].type == Tile.PLAYER && IsPassable(row, col, row, col + diry, fences, tiles) && IsPassable(row, col + diry, destRow, destCol, fences, tiles));
         }
 
         bool vertical = row == destRow;

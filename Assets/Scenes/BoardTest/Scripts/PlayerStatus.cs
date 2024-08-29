@@ -1,5 +1,7 @@
 public class PlayerStatus
 {
-  public bool building { get; set; }
-  public bool vertical { get; set; }
+  public const int MAX_FENCES = 10;
+  public bool building;
+  public bool vertical;
+  public int fences = MAX_FENCES;
 }

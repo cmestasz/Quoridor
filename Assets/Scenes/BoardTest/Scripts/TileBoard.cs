@@ -16,7 +16,7 @@ public class TileBoard : Board<Tile>
             for (int j = 0; j < BoardSize; j++)
             {
                 Tile tile = tiles[i, j];
-                tile.label.text = $"{i}, {j}";
+                //tile.label.text = $"{i}, {j}";
             }
         }
     }
@@ -31,5 +31,19 @@ public class TileBoard : Board<Tile>
         tile2.SetType(type);
         tile1.SetColor(tile2.color);
         tile2.SetColor(color);
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < BoardSize; i++)
+        {
+            for (int j = 0; j < BoardSize; j++)
+            {
+                Tile tile = tiles[i, j];
+                tile.ResetState();
+                tile.SetType(Tile.EMPTY);
+                tile.SetColor(Color.white);
+            }
+        }
     }
 }
