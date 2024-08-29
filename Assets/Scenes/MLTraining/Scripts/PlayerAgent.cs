@@ -34,7 +34,12 @@ public class PlayerAgent : Agent
 
     public void EndGame()
     {
-        if (player == gameManager.winner)
+        if (gameManager.winner == -1)
+        {
+            Debug.LogError("Turn limit reached");
+            SetReward(0f);
+        }
+        else if (player == gameManager.winner)
             SetReward(1f);
         else
             SetReward(-1f);
@@ -43,9 +48,9 @@ public class PlayerAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        
+
         fullBoard = BuildBoard();
-        for (int i = fullBoard.GetLength(0) - 1; i >= 0 ; i++)
+        for (int i = fullBoard.GetLength(0) - 1; i >= 0; i--)
         {
             for (int j = 0; j < fullBoard.GetLength(1); j++)
             {
@@ -59,7 +64,7 @@ public class PlayerAgent : Agent
         enemyFences = Normalize(enemyFences, 0, PlayerStatus.MAX_FENCES);
         sensor.AddObservation(playerFences);
         sensor.AddObservation(enemyFences);
-        
+
     }
 
 
