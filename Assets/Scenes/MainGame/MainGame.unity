@@ -515,6 +515,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 5202985232278019368, guid: fc55e79eaea07534385b372992eee03c, type: 3}
+--- !u!1 &858674996
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 858674997}
+  m_Layer: 0
+  m_Name: PreviewsParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &858674997
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 858674996}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &953743134
 GameObject:
   m_ObjectHideFlags: 0
@@ -618,6 +649,7 @@ MonoBehaviour:
   fenceSprite: {fileID: 21300000, guid: 5c952611e2090034eaf68f2634bdcabb, type: 3}
   playerSprite: {fileID: 21300000, guid: 65194a2f13f0f064fb28270a90de9294, type: 3}
   playerPreviewPrefab: {fileID: 4812111420942027795, guid: df4354b731b2119458df7a4f12a92a81, type: 3}
+  previewsParent: {fileID: 858674997}
 --- !u!1 &1025302657
 GameObject:
   m_ObjectHideFlags: 0
@@ -629,7 +661,7 @@ GameObject:
   - component: {fileID: 1025302658}
   - component: {fileID: 1025302659}
   m_Layer: 0
-  m_Name: ManualGameManager
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -662,18 +694,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1adea0b6c30d2a84dadeae250609778a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMode: 1
+  agentPrefab: {fileID: 3197809116335222789, guid: 3ad6cd45d04055b429bee02032df268f, type: 3}
   tileBoard: {fileID: 593554253}
   fenceBoard: {fileID: 128526445}
-  previewController: {fileID: 0}
+  previewController: {fileID: 953743137}
   playerColors:
   - {r: 1, g: 0, b: 0, a: 1}
   - {r: 0, g: 1, b: 0.02162838, a: 1}
-  HORIZONTAL_NEIGHBORS:
-  - {x: 1, y: 0}
-  - {x: -1, y: 0}
-  VERTICAL_NEIGHBORS:
-  - {x: 0, y: 1}
-  - {x: 0, y: -1}
+  turn: 0
 --- !u!1 &1346289128
 GameObject:
   m_ObjectHideFlags: 0
@@ -777,3 +806,4 @@ SceneRoots:
   - {fileID: 125688303}
   - {fileID: 196874511}
   - {fileID: 953743136}
+  - {fileID: 858674997}

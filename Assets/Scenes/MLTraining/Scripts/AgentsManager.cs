@@ -15,6 +15,7 @@ public class AgentsManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Academy.Instance.AutomaticSteppingEnabled = false;
         StartGame();
     }
 
@@ -49,10 +50,12 @@ public class AgentsManager : MonoBehaviour
             if (turn % 2 == 0)
             {
                 agent1.RequestDecision();
+                Academy.Instance.EnvironmentStep();
             }
             else
             {
                 agent2.RequestDecision();
+                Academy.Instance.EnvironmentStep();
             }
             turn++;
             // yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));

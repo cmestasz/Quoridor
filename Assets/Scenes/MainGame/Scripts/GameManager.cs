@@ -3,9 +3,14 @@ using UnityEngine;
 using static Validations;
 using static Constants;
 using System;
+using Unity.MLAgents;
 
 public class GameManager : MonoBehaviour
 {
+    public enum GameMode { PlayerVsPlayer, PlayerVsAI, AIVsAI };
+    [SerializeField] private GameMode gameMode;
+    [SerializeField] private GameObject agentPrefab;
+    private InferencePlayerAgent[] agents = new InferencePlayerAgent[2];
     public TileBoard tileBoard;
     public FenceBoard fenceBoard;
     [SerializeField] private PreviewController previewController;
@@ -22,7 +27,28 @@ public class GameManager : MonoBehaviour
         fenceBoard.Init();
         previewController.Init();
         aStar = new AStar(tileBoard.tiles, fenceBoard.tiles);
+        Academy.Instance.AutomaticSteppingEnabled = false;
+
+        switch (gameMode)
+        {
+            case GameMode.PlayerVsPlayer:
+                break;
+            case GameMode.PlayerVsAI:
+                CreateAgent(1);
+                break;
+            case GameMode.AIVsAI:
+                CreateAgent(0);
+                CreateAgent(1);
+                break;
+        }
+
         StartGame();
+    }
+
+    private void CreateAgent(int player)
+    {
+        agents[player] = Instantiate(agentPrefab, Vector3.zero, Quaternion.identity).GetComponent<InferencePlayerAgent>();
+        agents[player].Init(player);
     }
 
     public void StartGame()
@@ -71,6 +97,7 @@ public class GameManager : MonoBehaviour
             {
                 playersStatus[player].fences--;
                 PassTurn();
+                return true;
             }
         }
         return false;
@@ -122,6 +149,19 @@ public class GameManager : MonoBehaviour
 
     private void HandleTurn()
     {
+        if (agents[turn] != null)
+        {
+            agents[turn].RequestDecision();
+            Academy.Instance.EnvironmentStep();
+        }
+        else
+        {
+            HandlePlayerTurn();
+        }
+    }
+
+    private void HandlePlayerTurn()
+    {
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -149,6 +189,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Player " + winner + " wins!");
         previewController.EndGame();
+        Academy.Instance.Dispose();
         playing = false;
     }
 
@@ -240,19 +281,29 @@ public class GameManager : MonoBehaviour
         return playerPositions[player];
     }
 
-    private bool IsPlayerVertical(int player)
+    public Vector2Int GetPlayerDestination(int player)
+    {
+        return PLAYER_DESTINATIONS[player];
+    }
+
+    public bool IsPlayerVertical(int player)
     {
         return playersStatus[player].vertical;
     }
 
-    private bool IsPlayerBuilding(int player)
+    public bool IsPlayerBuilding(int player)
     {
         return playersStatus[player].building;
     }
 
-    private int GetPlayerFences(int player)
+    public int GetPlayerFences(int player)
     {
         return playersStatus[player].fences;
+    }
+
+    public PlayerStatus GetPlayerStatus(int player)
+    {
+        return playersStatus[player];
     }
 
     public bool IsCurrentBuilding()
