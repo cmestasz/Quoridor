@@ -28,7 +28,8 @@ Por ahora, solo se puede ejecutar el juego en Unity. Para hacerlo, sigue estos p
 ## Autores
 
 - Guevara, Fernando
-- Mestas Zegarra, Christian Raul
+- Mestas, Christian
+- Garay, Cesar
 
 ## Licencia
 
