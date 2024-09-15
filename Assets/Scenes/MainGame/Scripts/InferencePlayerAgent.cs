@@ -23,23 +23,41 @@ public class InferencePlayerAgent : Agent
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
-    public override void CollectObservations(VectorSensor sensor)
+    public void UpdateVisualObservation()
     {
         fullBoard = BuildBoard();
-        for (int i = fullBoard.GetLength(0) - 1; i >= 0; i--)
-        {
-            for (int j = 0; j < fullBoard.GetLength(1); j++)
-            {
-                sensor.AddOneHotObservation((int)fullBoard[j, i], BOARD_STATES);
-            }
-        }
+    }
 
+    public int FillVectorObservation(ObservationWriter writer)
+    {
         float playerFences = gameManager.GetPlayerStatus(player).fences;
         playerFences = Normalize(playerFences, 0, PlayerStatus.MAX_FENCES);
         float enemyFences = gameManager.GetPlayerStatus(1 - player).fences;
         enemyFences = Normalize(enemyFences, 0, PlayerStatus.MAX_FENCES);
-        sensor.AddObservation(playerFences);
-        sensor.AddObservation(enemyFences);
+
+        List<float> obs = new() { playerFences, enemyFences };
+        writer.AddList(obs);
+        return obs.Count;
+    }
+
+    public int FillVisualObservation(ObservationWriter writer)
+    {
+        // DebugBoard();
+        int written = 0;
+        for (int i = 0; i < fullBoard.GetLength(0); i++)
+        {
+            for (int j = 0; j < fullBoard.GetLength(1); j++)
+            {
+                for (int c = 0; c < BOARD_STATES; c++)
+                {
+                    float value = fullBoard[i, j] == (BoardState)c + 1 ? 1f : 0f;
+                    writer[c, j, i] = value;
+                    written++;
+                }
+            }
+
+        }
+        return written;
     }
 
     private BoardState[,] BuildBoard()

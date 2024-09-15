@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2029204376660250553}
   - component: {fileID: 668909310080462586}
   - component: {fileID: 7189243317377561650}
+  - component: {fileID: 2382501576853224417}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1736
+    VectorObservationSize: 0
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -56,7 +57,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 2daa9f5a9c4a0d3499688482b69285b4, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: 42c87b81782d504419789f61c565da74, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 2
   m_BehaviorName: quoridor
@@ -81,7 +82,6 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  gameManager: {fileID: 0}
 --- !u!114 &7189243317377561650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,6 +92,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 977259d55e900624eb216bdf29604545, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAgent: {fileID: 668909310080462586}
+--- !u!114 &2382501576853224417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3197809116335222789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 509cd118762c95649a0ae1c176434bca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerAgent: {fileID: 668909310080462586}
