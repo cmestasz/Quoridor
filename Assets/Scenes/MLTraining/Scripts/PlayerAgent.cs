@@ -36,7 +36,7 @@ public class PlayerAgent : Agent
         else if (player == gameManager.winner)
             AddReward(1f);
         else
-            SetReward(-1f);
+            AddReward(-1f);
         EndEpisode();
     }
 
